@@ -8,140 +8,137 @@
 #include "paper.cpp"
 #include "utils.cpp"
 
+#define INDEX_LAST_ATTRIBUTE 6
+
 using namespace std;
 
-int main() {
-    string line;
+void applyAttribute(string word, int indexAttribute, Paper *paper) {
+    switch(indexAttribute) {
+        case 0:
+            paper->id = std::stoi(word);
 
-    fstream file("artigo.csv", ios::in);
-    if (file.is_open()) {
-        int i = 0;
-        while (getline(file, line)) {
-            int indexAttribute = 0;
-            int indexCharacter = 0;
-            Paper paper;
-            while (indexCharacter < line.length()) {
-                string word;
+            break;
+        case 1:
+            paper->title = (char*) malloc(sizeof(char) * word.length() + 1);
+            word.copy(paper->title, word.length() + 1);
 
-                if (line[indexCharacter] == ';' && line[indexCharacter + 1] == ';') {
-                    word = "";
+            break;
+        case 2:
+            paper->year = std::stoi(word);
 
-                    switch(indexAttribute) {
-                        case 0:
-                            paper.id = std::stoi(word);
+            break;
+        case 3:
+            paper->authors = (char*) malloc(sizeof(char) * word.length() + 1);
+            word.copy(paper->authors, word.length() + 1);
 
-                            break;
-                        case 1:
-                            paper.title = (char*) malloc(sizeof(char) * word.length() + 1);
-                            word.copy(paper.title, word.length());
+            break;
+        case 4:
+            paper->citations = std::stoi(word);
 
-                            break;
-                        case 2:
-                            paper.year = std::stoi(word);
+            break;
+        case 5:
+            word.copy(paper->updated_at, word.length() + 1);
 
-                            break;
-                        case 3:
-                            paper.authors = (char*) malloc(sizeof(char) * word.length() + 1);
-                            word.copy(paper.authors, word.length());
+            break;
+        default:
+            paper->snippet = (char*) malloc(sizeof(char) * word.length() + 1);
+            word.copy(paper->snippet, word.length());
 
-                            break;
-                        case 4:
-                            paper.citations = std::stoi(word);
-
-                            break;
-                        case 5:
-                            word.copy(paper.updated_at, word.length());
-
-                            break;
-                        default:
-                            paper.snippet = (char*) malloc(sizeof(char) * word.length() + 1);
-                            word.copy(paper.snippet, word.length());
-
-                            // cout << "line = " << line << "\n";
-
-                            break;
-                    }
-                    indexAttribute++;
-                    indexCharacter++;
-
-                }
-
-                if (line[indexCharacter] == '"') {
-                    int indexCloseQuotes = indexOfCharacterFirstOcurrance(line, '"', indexCharacter + 1);
-                    while(line[indexCloseQuotes + 1] == '"') {
-                        indexCloseQuotes = indexOfCharacterFirstOcurrance(line, '"', indexCloseQuotes + 2);
-                    }
-                    int indexStartData = indexCharacter + 1;
-                    // cout << "indexAttribute = " << indexAttribute << "\n";
-                    // cout << "line[indexStartData] = " << line[indexStartData] << "\n";
-                    // cout << "line[indexStartData + 1] = " << line[indexStartData + 1] << "\n";
+            break;
+    }
+}
 
 
+Paper readRegistry(fstream* file, string* line) {
+    int indexAttribute = 0;
+    int indexCharacter = 0;
+    Paper paper;
 
-                    if (line[indexStartData] == ';' && line[indexStartData + 1] == ';') {
-                        // cout << ">>>true\n";
-                        
-                        word = "";
-                    } else {
-                        // cout << ">>>false\n";
-                        word = line.substr(indexStartData, indexCloseQuotes - indexStartData);
-                    }
+    while (indexCharacter < line->length() || indexAttribute <= INDEX_LAST_ATTRIBUTE) {
+        string word;
 
-                    // cout << "word = " << word << "\n";
-                    // cout << "indexCloseQuotes = " << indexCloseQuotes << "\n";
-                    // cout << "indexStartData = " << indexStartData << "\n";
+        // se o campo for vazio, i.e. ';;' ou nulo, i.e. NULL
+        // mapeamos o valor para uma string vazia
+        if (((*line)[indexCharacter] == ';' && (*line)[indexCharacter + 1] == ';') || ((*line)[indexCharacter] == 'N')) {
+            word = '\0';
 
-                    switch(indexAttribute) {
-                        case 0:
-                            paper.id = std::stoi(word);
+            applyAttribute(word, indexAttribute, &paper);
 
-                            break;
-                        case 1:
-                            paper.title = (char*) malloc(sizeof(char) * word.length() + 1);
-                            word.copy(paper.title, word.length());
+            indexAttribute++;
+            indexCharacter++;
+        }
 
-                            break;
-                        case 2:
-                            paper.year = std::stoi(word);
+        // se o campo nao for vazio
+        if ((*line)[indexCharacter] == '"') {
+            int indexCloseQuotes = indexOfCharacterFirstOcurrance((*line), '"', indexCharacter + 1);
+            int indexStartData = indexCharacter + 1;
 
-                            break;
-                        case 3:
-                            paper.authors = (char*) malloc(sizeof(char) * word.length() + 1);
-                            word.copy(paper.authors, word.length());
+            // se, em uma mesma linha, nao encontrar as aspas que fecham os dados do campo
+            // quer dizer que ha uma quebra de linha no dado do campo
+            // entao precisamos continuar na proxima linha
+            if (indexCloseQuotes == -1) {
+                word = line->substr(indexStartData, line->length());
+                getline((*file), (*line));
 
-                            break;
-                        case 4:
-                            paper.citations = std::stoi(word);
+                indexCharacter = 0;
 
-                            break;
-                        case 5:
-                            word.copy(paper.updated_at, word.length());
+                indexCloseQuotes = indexOfCharacterFirstOcurrance((*line), '"', indexCharacter + 1);
 
-                            break;
-                        default:
-                            paper.snippet = (char*) malloc(sizeof(char) * word.length() + 1);
-                            word.copy(paper.snippet, word.length());
+                word.append(line->substr(0, indexCloseQuotes));
 
-                            // cout << "line = " << line << "\n";
+            }
 
-                            break;
-                    }
-                    indexAttribute++;
+            // se o valor do campo possui aspas, precisamos encontrar as aspas 'verdadeiras' que fecham
+            // ou seja, uma aspa que nao possui logo em seguida uma outra aspa
+            while((*line)[indexCloseQuotes + 1] == '"') {
+                indexCloseQuotes = indexOfCharacterFirstOcurrance((*line), '"', indexCloseQuotes + 2);
+            }
 
-                    indexCharacter = indexCloseQuotes + 1;
-                } else {
-                    indexCharacter++;
+            word = line->substr(indexStartData, indexCloseQuotes - indexStartData);
+
+            // remove os caracteres invalidos da string
+            int j = 0;
+            for (int i = 0; i < word.length(); i++) {
+                if (word[i] >= 0 && word[i] < 128) {
+                    word[j] = word[i];
+                    j++;
                 }
             }
-            paper.print();
-            i++;
-            line.clear();
+            word[j] = '\0';
+
+            applyAttribute(word, indexAttribute, &paper);
+
+            indexAttribute++;
+            indexCharacter = indexCloseQuotes + 1;
+
+        } else {
+            indexCharacter++;
         }
-    } else {
-        cout << "Could not open the file\n";
     }
 
-    cout << "LEU TUDO!!\n";
+    return paper;
+}
+
+void readCSVFile(string filename) {
+    string line;
+
+    fstream file(filename, ios::in);
+    cout << "Iniciando leitura do arquivo...\n";
+    Paper paper;
+    if (file.is_open()) {
+        while (getline(file, line)) {
+            paper = readRegistry(&file, &line);
+            paper.print();
+        }
+    } else {
+        cout << "O arquivo nao existe!\n";
+    }
+
+    cout << "Arquivo lido com sucesso.\n";
+}
+
+int main() {
+    readCSVFile("artigo.csv");
 
     return 0;
 }
