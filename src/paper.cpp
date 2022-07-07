@@ -14,6 +14,7 @@ struct Paper {
     void print() {
         std::cout << "id: " << id << "\n"
                   << "titulo: " << title << "\n"
+                  << "ano: " << year << "\n"
                   << "snippet: " << snippet << "\n"
                   << "autores: " << authors << "\n"
                   << "citacoes: " << citations << "\n"
