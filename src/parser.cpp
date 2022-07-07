@@ -128,7 +128,7 @@ void readCSVFile(string filename) {
     if (file.is_open()) {
         while (getline(file, line)) {
             paper = readRegistry(&file, &line);
-            paper.print();
+            // paper.print();
         }
     } else {
         cout << "O arquivo nao existe!\n";
