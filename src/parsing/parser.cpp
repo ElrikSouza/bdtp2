@@ -1,68 +1,66 @@
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <vector>
+#include "parser.h"
+
 #include <cstring>
+#include <fstream>
+#include <iostream>
 #include <sstream>
 #include <string>
-#include "paper.cpp"
-#include "utils.cpp"
+#include <vector>
 
-#define INDEX_LAST_ATTRIBUTE 6
+#include "../paper.h"
+#include "parser.h"
 
 using namespace std;
 
-void applyAttribute(string word, int indexAttribute, Paper *paper) {
-    switch(indexAttribute) {
+int get_first_character_occurance_index(string str, char character, int offset) {
+    return str.find_first_of(character, offset);
+}
+
+void assign_attribute_to_paper(string word, int indexAttribute, Paper* paper) {
+    switch (indexAttribute) {
         case 0:
             paper->id = std::stoi(word);
 
             break;
         case 1:
-            paper->title = (char*) malloc(sizeof(char) * word.length() + 1);
-            word.copy(paper->title, word.length() + 1);
-
+            paper->title = word;
             break;
         case 2:
             paper->year = std::stoi(word);
 
             break;
         case 3:
-            paper->authors = (char*) malloc(sizeof(char) * word.length() + 1);
-            word.copy(paper->authors, word.length() + 1);
-
+            paper->authors = word;
             break;
         case 4:
             paper->citations = std::stoi(word);
 
             break;
         case 5:
-            word.copy(paper->updated_at, word.length() + 1);
+            paper->updated_at = word;
 
             break;
         default:
-            paper->snippet = (char*) malloc(sizeof(char) * word.length() + 1);
-            word.copy(paper->snippet, word.length());
-
+            paper->snippet = word;
             break;
     }
 }
 
-
-Paper readRegistry(fstream* file, string* line) {
+Paper* read_csv_line(fstream* file, string* line) {
     int indexAttribute = 0;
     int indexCharacter = 0;
-    Paper paper;
+    Paper* paper = new Paper;
 
     while (indexCharacter < line->length() || indexAttribute <= INDEX_LAST_ATTRIBUTE) {
         string word;
 
         // se o campo for vazio, i.e. ';;' ou nulo, i.e. NULL
         // mapeamos o valor para uma string vazia
-        if (((*line)[indexCharacter] == ';' && (*line)[indexCharacter + 1] == ';') || ((*line)[indexCharacter] == 'N')) {
+        if (((*line)[indexCharacter] == ';' && (*line)[indexCharacter + 1] == ';') ||
+            ((*line)[indexCharacter] == 'N')) {
             word = '\0';
 
-            applyAttribute(word, indexAttribute, &paper);
+            assign_attribute_to_paper(word, indexAttribute, paper);
 
             indexAttribute++;
             indexCharacter++;
@@ -70,7 +68,7 @@ Paper readRegistry(fstream* file, string* line) {
 
         // se o campo nao for vazio
         if ((*line)[indexCharacter] == '"') {
-            int indexCloseQuotes = indexOfCharacterFirstOcurrance((*line), '"', indexCharacter + 1);
+            int indexCloseQuotes = get_first_character_occurance_index((*line), '"', indexCharacter + 1);
             int indexStartData = indexCharacter + 1;
 
             // se, em uma mesma linha, nao encontrar as aspas que fecham os dados do campo
@@ -82,16 +80,15 @@ Paper readRegistry(fstream* file, string* line) {
 
                 indexCharacter = 0;
 
-                indexCloseQuotes = indexOfCharacterFirstOcurrance((*line), '"', indexCharacter + 1);
+                indexCloseQuotes = get_first_character_occurance_index((*line), '"', indexCharacter + 1);
 
                 word.append(line->substr(0, indexCloseQuotes));
-
             }
 
             // se o valor do campo possui aspas, precisamos encontrar as aspas 'verdadeiras' que fecham
             // ou seja, uma aspa que nao possui logo em seguida uma outra aspa
-            while((*line)[indexCloseQuotes + 1] == '"') {
-                indexCloseQuotes = indexOfCharacterFirstOcurrance((*line), '"', indexCloseQuotes + 2);
+            while ((*line)[indexCloseQuotes + 1] == '"') {
+                indexCloseQuotes = get_first_character_occurance_index((*line), '"', indexCloseQuotes + 2);
             }
 
             word = line->substr(indexStartData, indexCloseQuotes - indexStartData);
@@ -106,7 +103,7 @@ Paper readRegistry(fstream* file, string* line) {
             }
             word[j] = '\0';
 
-            applyAttribute(word, indexAttribute, &paper);
+            assign_attribute_to_paper(word, indexAttribute, paper);
 
             indexAttribute++;
             indexCharacter = indexCloseQuotes + 1;
@@ -117,28 +114,4 @@ Paper readRegistry(fstream* file, string* line) {
     }
 
     return paper;
-}
-
-void readCSVFile(string filename) {
-    string line;
-
-    fstream file(filename, ios::in);
-    cout << "Iniciando leitura do arquivo...\n";
-    Paper paper;
-    if (file.is_open()) {
-        while (getline(file, line)) {
-            paper = readRegistry(&file, &line);
-            // paper.print();
-        }
-    } else {
-        cout << "O arquivo nao existe!\n";
-    }
-
-    cout << "Arquivo lido com sucesso.\n";
-}
-
-int main() {
-    readCSVFile("artigo.csv");
-
-    return 0;
 }
