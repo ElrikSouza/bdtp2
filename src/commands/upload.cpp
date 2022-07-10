@@ -3,9 +3,11 @@
 #include "../db/hash-file.h"
 #include "../parsing/paper-stream.h"
 
-// #define BUCKETS 1000000
-#define BUCKETS 400000
-#define BLOCKS_PER_BUCKET 1
+// #define BUCKETS 400000
+// #define BLOCKS_PER_BUCKET 2
+
+#define BUCKETS 200000
+#define BLOCKS_PER_BUCKET 4
 
 int main() {
     std::vector<unsigned int> ids;
@@ -33,8 +35,6 @@ int main() {
             std::cout << "not found" << i << std::endl;
         } else if (current_paper->id != i) {
             std::cout << current_paper->id << " != " << i << std::endl;
-        } else {
-            // std::cout << i << std::endl;
         }
     }
 
