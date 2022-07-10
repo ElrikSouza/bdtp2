@@ -7,6 +7,8 @@
 
 #include "../paper.h"
 
+#pragma once
+
 #define INDEX_LAST_ATTRIBUTE 6
 
 using namespace std;

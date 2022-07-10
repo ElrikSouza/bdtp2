@@ -5,7 +5,7 @@
 
 #pragma once
 
-#define LENGTH_HEADERS 4
+#define LENGTH_HEADERS 6
 #define FIXED_LENGTH 30
 #define REGISTER_HEADER 2
 

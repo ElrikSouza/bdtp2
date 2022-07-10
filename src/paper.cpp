@@ -4,6 +4,7 @@
 #include <string>
 
 #include "buffer-utils.h"
+#include "buffer/buffer-writer.h"
 
 void Paper::print() {
     std::cout << "id: " << id << "\n"
@@ -17,60 +18,35 @@ void Paper::print() {
 }
 
 unsigned short int Paper::get_register_size() {
-    return (unsigned short int)title.length() + snippet.length() + authors.length() + LENGTH_HEADERS + FIXED_LENGTH;
+    return (unsigned short int)title.length() + snippet.length() + authors.length() + LENGTH_HEADERS + FIXED_LENGTH +
+           REGISTER_HEADER;
 }
 
 const char* Paper::serialize() {
     unsigned short int register_size = get_register_size();
-    unsigned short int buffer_len = register_size + REGISTER_HEADER;
-    char* buffer = new char[buffer_len];
+    Buffer buffer(register_size);
 
-    int bytes_written = 0;
+    buffer.write_2byte_number(register_size);
+    buffer.write_4byte_number(id);
+    buffer.write_4byte_number(citations);
+    buffer.write_2byte_number(year);
+    buffer.write_fixed_length_string(updated_at, 20);
+    buffer.write_varchar(title);
+    buffer.write_varchar(authors);
+    buffer.write_varchar(snippet);
 
-    write_2byte_number_to_buffer(buffer, buffer_len, bytes_written);
-    bytes_written += 2;
-
-    write_4byte_number_to_buffer(buffer, id, bytes_written);
-    bytes_written += 4;
-
-    write_4byte_number_to_buffer(buffer, citations, bytes_written);
-    bytes_written += 4;
-
-    write_2byte_number_to_buffer(buffer, year, bytes_written);
-    bytes_written += 2;
-
-    write_fixed_length_string(buffer, updated_at, bytes_written);
-    bytes_written += 20;
-
-    bytes_written += write_varchar_to_buffer(buffer, title, bytes_written);
-
-    bytes_written += write_varchar_to_buffer(buffer, authors, bytes_written);
-
-    bytes_written += write_varchar_to_buffer(buffer, snippet, bytes_written);
-
-    return buffer;
+    return buffer.get_buffer_bytes();
 };
 
 void Paper::deserialize(unsigned char* buffer, int buffer_offset) {
-    int bytes_read = 2;
+    Buffer buffer_reader(buffer, 4096);
+    buffer_reader.jump_n_bytes_from_current_position(2 + buffer_offset);
 
-    id = read_4byte_number_from_buffer(buffer, buffer_offset + bytes_read);
-    bytes_read += 4;
-
-    citations = read_4byte_number_from_buffer(buffer, buffer_offset + bytes_read);
-    bytes_read += 4;
-
-    year = read_2byte_number_from_buffer(buffer, buffer_offset + bytes_read);
-    bytes_read += 2;
-
-    updated_at = read_fixed_length_string_from_buffer((char*)buffer, 20, buffer_offset + bytes_read);
-    bytes_read += updated_at.length();
-
-    title = read_varchar_from_buffer((char*)buffer, buffer_offset + bytes_read);
-    bytes_read += title.length() + 2;
-
-    authors = read_varchar_from_buffer((char*)buffer, buffer_offset + bytes_read);
-    bytes_read += authors.length() + 2;
-
-    snippet = read_varchar_from_buffer((char*)buffer, buffer_offset + bytes_read);
+    id = buffer_reader.read_4byte_number();
+    citations = buffer_reader.read_4byte_number();
+    year = buffer_reader.read_2byte_number();
+    updated_at = buffer_reader.read_fixed_length_string(20);
+    title = buffer_reader.read_varchar();
+    authors = buffer_reader.read_varchar();
+    snippet = buffer_reader.read_varchar();
 }

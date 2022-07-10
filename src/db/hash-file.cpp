@@ -1,26 +1,11 @@
+#include "hash-file.h"
+
 #include <fstream>
 #include <iostream>
 
-#include "binary-file.cpp"
-#include "paper-block.cpp"
-#include "paper.cpp"
-
-class HashFile {
-   private:
-    BinaryFile _bin_file;
-    int _blocks_per_bucket;
-    int _number_of_buckets;
-
-    int hash_paper(unsigned int paper_id);
-
-   public:
-    HashFile(int number_of_buckets, int blocks_per_bucket);
-
-    void open_file_for_reading(const char* filename);
-    void create_and_open_for_writing(const char* filename);
-    void insert_paper(Paper* paper);
-    Paper* get_paper_by_id(unsigned int id);
-};
+#include "../binary-file.h"
+#include "../paper-block.h"
+#include "../paper.h"
 
 HashFile::HashFile(int number_of_buckets, int blocks_per_bucket) {
     _blocks_per_bucket = blocks_per_bucket;
@@ -28,6 +13,23 @@ HashFile::HashFile(int number_of_buckets, int blocks_per_bucket) {
 
     int total_num_of_blocks = number_of_buckets * blocks_per_bucket;
     _bin_file = BinaryFile(total_num_of_blocks, 4096);
+}
+
+int HashFile::hash_paper(unsigned int paper_id) {
+    return paper_id % _number_of_buckets;
+}
+
+void HashFile::close() {
+    _bin_file.close();
+}
+
+void HashFile::create_and_open_for_writing(const char* filename) {
+    _bin_file.create_or_rewrite(filename);
+    _bin_file.zero_the_file_out();
+}
+
+void HashFile::open_file_for_reading(const char* filename) {
+    _bin_file.open_as_readonly(filename);
 }
 
 void HashFile::insert_paper(Paper* paper) {
@@ -44,11 +46,13 @@ void HashFile::insert_paper(Paper* paper) {
         if (didTheInsertionSucceed) {
             _bin_file.write_block(block.get_block_buffer(), current_block);
             delete block_buffer;
-            break;
+            return;
         }
 
         delete block_buffer;
     }
+
+    std::cout << "sem espaco" << std::endl;
 }
 
 Paper* HashFile::get_paper_by_id(unsigned int paper_id) {
@@ -70,6 +74,7 @@ Paper* HashFile::get_paper_by_id(unsigned int paper_id) {
         }
 
         delete block_buffer;
+        // std::cout << "crash" << std::endl;
     }
 
     return paper;

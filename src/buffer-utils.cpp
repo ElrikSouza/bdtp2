@@ -15,7 +15,7 @@ void write_4byte_number_to_buffer(char* buffer, unsigned int number, int offset)
     buffer[offset + 3] = number & 0xFF;
 }
 
-void write_fixed_length_string(char* buffer, std::string word, int offset) {
+void write_fixed_length_string_to_buffer(char* buffer, std::string word, int offset) {
     for (int i = 0; i < word.length(); i++) {
         buffer[offset + i] = word[i];
     }
@@ -38,7 +38,6 @@ unsigned short int read_2byte_number_from_buffer(unsigned char* bufferr, int off
     unsigned short int number = 0;
     unsigned char* buffer = (unsigned char*)bufferr;
 
-    printf("%.2x/%.2x", buffer[offset], buffer[offset + 1]);
     number += (buffer[offset] << 8);
     number += buffer[offset + 1];
 
@@ -55,7 +54,6 @@ unsigned int read_4byte_number_from_buffer(unsigned char* buffer, int offset) {
 }
 
 std::string read_fixed_length_string_from_buffer(char* buffer, int length, int offset) {
-    std::cout << "fixed len: " << length << "\n";
     return std::string(&buffer[offset], length);
 }
 
