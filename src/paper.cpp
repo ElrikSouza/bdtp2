@@ -3,8 +3,7 @@
 #include <iostream>
 #include <string>
 
-#include "buffer-utils.h"
-#include "buffer/buffer-writer.h"
+#include "buffer/buffer.h"
 
 void Paper::print() {
     std::cout << "id: " << id << "\n"

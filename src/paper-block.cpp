@@ -1,6 +1,7 @@
 #include "paper-block.h"
 
-#include "buffer/buffer-writer.h"
+#include "buffer/buffer-utils.h"
+#include "buffer/buffer.h"
 #include "paper.h"
 
 PaperBlock::PaperBlock(unsigned char* paper_block_bytes) {

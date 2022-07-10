@@ -1,5 +1,6 @@
-#include "../buffer-utils.h"
-#include "buffer-writer.h"
+#include "buffer.h"
+
+#include "buffer-utils.h"
 #include "iostream"
 
 Buffer::Buffer(int buffer_capacity) {

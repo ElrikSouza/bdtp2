@@ -7,10 +7,6 @@
 #include "paper-block.h"
 #include "paper.h"
 
-/**
- * Esta é uma classe para abstrair a leitura e escrita de blocos de um tamanho X em um arquivo binario qualquer.
- */
-
 BinaryFile::BinaryFile() {}
 BinaryFile::BinaryFile(int num_of_blocks, int block_size) : _num_of_blocks(num_of_blocks), _block_size(block_size) {}
 
