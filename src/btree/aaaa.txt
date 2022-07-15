@@ -1,0 +1,41 @@
+// header
+// bloco da raiz 4 bytes
+// ultimo bloco usado 4 bytes
+// 0000
+
+// id=4 bytes + ponteiro=4bytes
+// 8(m+1) + 8m <= 4096
+// 16m <= 4088
+// m = 255
+
+// interno
+// (chave,apontar) * 2m + maior
+
+// folha
+// (chave + apontar)*2m + next (4 ultimos bytes)
+
+// insercao
+// flag
+
+int aaa() {
+    // find leaf, put the path on a stack
+    // if there is space, end
+    // else:
+    // ask for the location of the next free block
+    // pre-alocate the block with zero's
+    // transfer the second half of the keys to the new node
+    // transfer the "next leaf block" pointer to the new node
+    // make the original node's "next leaf block" point to the new node
+    // copy the key that would be in the middle of the node (i.e [max keys / 2] + 1) to the parent node
+    // reorganize the pointers of the parent node
+    // if the parent node doesn't have enough space, repeat
+    // if the root needs to be split, create a new root and put the middle key in there
+
+    // the header must keep track of the current root block and the next free block
+
+    return 0;
+}
+
+// tests
+// [] find every key through search
+// [] find every key sequentially in the right order via "next leaf block" pointers
