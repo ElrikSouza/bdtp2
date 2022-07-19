@@ -1,9 +1,21 @@
-#include "btree.h"
+#include "bptree.h"
 
 #include <fstream>
 #include <stack>
 
-#include "../binary-file.h"
+#include "binary-file.h"
+#include "bptree-header-block.h"
+#include "bptree-internal-block.h"
+#include "bptree-leaf-block.h"
+#include "bptree-root-block.h"
+
+BPTree::BPTree(){
+    _header_block = BPTreeHeaderBlock();
+}
+
+unsigned int BPTree::get_root_node() {
+    return _header_block.get_root_node_index();
+}
 
 std::stack<unsigned int> BPTree::get_path_to_leaf(unsigned int key) {
     std::stack<unsigned int> path;
@@ -53,7 +65,7 @@ bool BPTree::insert_key(unsigned int key, unsigned int data_file_block_index) {
     //
 
     unsigned int middle_key = leaf.get_middle_key();
-    unsigned int next_free_block = get_next_free_block_and_point_to_next();
+    unsigned int next_free_block = _header_block.get_next_free_block_and_point_to_next();
     BPTreeLeafBlock new_split_leaf;
     leaf.transfer_data_and_pointers_to_split_node(&new_split_leaf, next_free_block);
     _tree_file.write_block((char*)leaf.get_block_buffer(), leaf_index);
@@ -64,7 +76,7 @@ bool BPTree::insert_key(unsigned int key, unsigned int data_file_block_index) {
     while (1 == 1) {
         if (path_to_leaf.empty()) {
             BPTreeRootBlock new_root;
-            unsigned int new_root_index = get_next_free_block_and_point_to_next();
+            unsigned int new_root_index = _header_block.get_next_free_block_and_point_to_next();
             new_root.insert_key(key, parent_index, next_free_block);
 
             _tree_file.write_block((char*)new_root.get_block_buffer(), new_root_index);
@@ -88,10 +100,18 @@ bool BPTree::insert_key(unsigned int key, unsigned int data_file_block_index) {
         }
 
         middle_key = parent.get_middle_key();
-        next_free_block = get_next_free_block_and_point_to_next();
+        next_free_block = _header_block.get_next_free_block_and_point_to_next();
         BPTreeInternalBlock new_split_internal_block;
         parent.transfer_data_and_pointers_to_split_node(&new_split_internal_block, next_free_block);
     }
+}
+
+unsigned int BPTree::get_data_pointer(unsigned int key) {
+    // TODO
+}
+
+bool BPTree::is_leaf(unsigned char* block_buffer) {
+    // TODO
 }
 
 // 32 bits 16tb
