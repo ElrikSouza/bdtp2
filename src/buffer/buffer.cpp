@@ -7,6 +7,10 @@ Buffer::Buffer(int buffer_capacity) {
     _buffer_capacity = buffer_capacity;
     _internal_buffer = new char[buffer_capacity];
     _current_position = 0;
+
+    for (int i = 0; i < _buffer_capacity; i++) {
+        _internal_buffer[i] = 0;
+    }
 }
 
 Buffer::Buffer(unsigned char* buffer, int buffer_capacity) {
