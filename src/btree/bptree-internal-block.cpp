@@ -1,5 +1,6 @@
 #include "bptree-internal-block.h"
-#include "buffer/buffer-utils.h"
+
+#include "../buffer/buffer-utils.h"
 
 BPTreeInternalBlock::BPTreeInternalBlock() {
     _first_key_value = 0;

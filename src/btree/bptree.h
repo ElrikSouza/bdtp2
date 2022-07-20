@@ -1,8 +1,9 @@
+#include "bptree-header-block.h"
+
 #include <stack>
 
-#include "binary-file.h"
-#include "buffer/buffer.h"
-#include "bptree-header-block.h"
+#include "../binary-file.h"
+#include "../buffer/buffer.h"
 
 #pragma once
 
@@ -16,7 +17,7 @@ class BPTree {
    public:
     BPTree();
 
-    bool insert_key(unsigned int key, unsigned int data_file_block_index);
+    void insert_key(unsigned int key, unsigned int data_file_block_index);
 
     // procura por uma chave na arvore, se existir, retorna um ponteiro para o bloco
     // correspondente no arquivo de dados, caso contrario, retorna 0

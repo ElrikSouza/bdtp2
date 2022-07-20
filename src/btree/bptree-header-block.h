@@ -1,4 +1,4 @@
-#include "buffer/buffer.h"
+#include "../buffer/buffer.h"
 
 #pragma once
 
@@ -6,6 +6,7 @@ class BPTreeHeaderBlock {
    private:
     unsigned int _root_index;
     unsigned int _next_free_block_index;
+    unsigned int _qt_blocks;
     Buffer _buffer{nullptr, 0};
 
    public:
