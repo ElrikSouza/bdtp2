@@ -1,16 +1,29 @@
 #include "bptree.h"
-
-#include <fstream>
-#include <stack>
-
-#include "binary-file.h"
 #include "bptree-header-block.h"
 #include "bptree-internal-block.h"
 #include "bptree-leaf-block.h"
 #include "bptree-root-block.h"
 
+#include <fstream>
+#include <stack>
+
+#include "../binary-file.h"
+#include "../buffer/buffer-utils.h"
+
 BPTree::BPTree(){
+    _tree_file = BinaryFile(10000, 4096);
     _header_block = BPTreeHeaderBlock();
+    BPTreeLeafBlock root;
+    unsigned int root_block = _header_block.get_next_free_block_and_point_to_next();
+    _header_block.set_new_root_index(root_block);
+    // std::cout << "root = " << root_block << std::endl;
+
+    _tree_file.write_block(_header_block.get_block_buffer(), _header_block.get_next_free_block_and_point_to_next());
+    _tree_file.write_block(root.get_block_buffer(), root_block);
+
+    // unsigned char* aa = _tree_file.read_block(root_block);
+    // unsigned int bb = read_2byte_number_from_buffer(aa, 0);
+    // std::cout << "bb = " << bb << std::endl;
 }
 
 unsigned int BPTree::get_root_node() {
@@ -23,6 +36,12 @@ std::stack<unsigned int> BPTree::get_path_to_leaf(unsigned int key) {
     unsigned int root_index = get_root_node();
     unsigned char* root_node_buffer = _tree_file.read_block(root_index);
 
+    // bool a = is_leaf(root_node_buffer);
+    // unsigned short int aaa = read_2byte_number_from_buffer(root_node_buffer, 0);
+    // std::cout << "root = " << root_index << std::endl;
+    // std::cout << a << std::endl;
+    // std::cout << aaa << std::endl;
+
     path.push(root_index);
 
     if (is_leaf(root_node_buffer)) {
@@ -31,7 +50,9 @@ std::stack<unsigned int> BPTree::get_path_to_leaf(unsigned int key) {
 
     BPTreeInternalBlock internal_block(root_node_buffer);
 
+    // std::cout << "Antes" << std::endl;
     while (1 == 1) {
+        // std::cout << "Dentro" << std::endl;
         unsigned int matching_pointer = internal_block.get_matching_pointer(key);
         path.push(matching_pointer);
 
@@ -45,7 +66,7 @@ std::stack<unsigned int> BPTree::get_path_to_leaf(unsigned int key) {
     }
 }
 
-bool BPTree::insert_key(unsigned int key, unsigned int data_file_block_index) {
+void BPTree::insert_key(unsigned int key, unsigned int data_file_block_index) {
     std::stack<unsigned int> path_to_leaf = get_path_to_leaf(key);
 
     unsigned int leaf_index = path_to_leaf.top();
@@ -59,10 +80,8 @@ bool BPTree::insert_key(unsigned int key, unsigned int data_file_block_index) {
         leaf.insert_key(key, data_file_block_index);
         _tree_file.write_block((char*)leaf.get_block_buffer(), leaf_index);
 
-        return true;
+        return;
     }
-
-    //
 
     unsigned int middle_key = leaf.get_middle_key();
     unsigned int next_free_block = _header_block.get_next_free_block_and_point_to_next();
@@ -106,12 +125,12 @@ bool BPTree::insert_key(unsigned int key, unsigned int data_file_block_index) {
     }
 }
 
-unsigned int BPTree::get_data_pointer(unsigned int key) {
-    // TODO
-}
-
 bool BPTree::is_leaf(unsigned char* block_buffer) {
-    // TODO
+    unsigned short int is_leaf = read_2byte_number_from_buffer(block_buffer, 0);
+
+    if (is_leaf == 1) return true;
+
+    return false;
 }
 
 // 32 bits 16tb
@@ -121,6 +140,7 @@ bool BPTree::is_leaf(unsigned char* block_buffer) {
 
 void BPTree::create_tree_file(const char* filename) {
     _tree_file.create_or_rewrite(filename);
+    _tree_file.zero_the_file_out();
 }
 
 void BPTree::read_tree_file(const char* filename) {

@@ -13,9 +13,18 @@
 
 // folha
 // (chave + apontar)*2m + next (4 ultimos bytes)
+// (2m*4 + 2m*4) + 4 <= 4096
+// 16m <= 4092
+// m = 255
+// sobram 12 bytes
+// 2 bytes p indicar se eh ou nao folha
 
 // insercao
 // flag
+
+// 300*2m + 4*2m + 4 <= 4096
+// 608m <= 4092
+// m = 6
 
 int aaa() {
     // find leaf, put the path on a stack

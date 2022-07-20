@@ -1,9 +1,11 @@
-#include "buffer/buffer.h"
+#include "../buffer/buffer.h"
 
 #pragma once
 
 class BPTreeInternalBlock {
    private:
+    unsigned short int _is_leaf;
+    unsigned short int _qt_keys;
     unsigned int _first_key_value;
     unsigned int _first_subtree_block_index;
     Buffer _buffer{nullptr, 0};
