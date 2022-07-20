@@ -1,42 +1,29 @@
-#include <vector>
-
 #include "../db/hash-file.h"
 #include "../parsing/paper-stream.h"
 
-// #define BUCKETS 400000
-// #define BLOCKS_PER_BUCKET 2
+#define BUCKETS 400000
+#define BLOCKS_PER_BUCKET 1
 
-#define BUCKETS 200000
-#define BLOCKS_PER_BUCKET 4
-
-int main() {
-    std::vector<unsigned int> ids;
+int main(int argc, char const *argv[]) {
     PaperStream stream;
 
-    Paper* current_paper;
-    stream.open_source_file("artigo.csv");
+    char const *filename = argv[1];
 
-    HashFile f(BUCKETS, BLOCKS_PER_BUCKET);
-    f.create_and_open_for_writing("result.hex");
+    stream.open_source_file(filename);
 
+    HashFile hash_file(BUCKETS, BLOCKS_PER_BUCKET);
+    hash_file.create_and_open_for_writing("hash-data-file.bin");
+    Paper *current_paper;
+
+    int total_papers = 0;
     while ((current_paper = stream.get_next_paper()) != nullptr) {
-        f.insert_paper(current_paper);
-        ids.emplace_back(current_paper->id);
+        hash_file.insert_paper(current_paper);
+        total_papers++;
         delete current_paper;
     }
 
-    f.close();
-
-    f.open_file_for_reading("result.hex");
-
-    for (int i : ids) {
-        current_paper = f.get_paper_by_id(i);
-        if (current_paper == nullptr) {
-            std::cout << "not found" << i << std::endl;
-        } else if (current_paper->id != i) {
-            std::cout << current_paper->id << " != " << i << std::endl;
-        }
-    }
+    std::cout << "Artigos inseridos: " << total_papers << std::endl;
+    hash_file.close();
 
     return 0;
 }

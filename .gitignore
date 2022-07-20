@@ -33,3 +33,8 @@
 
 # CSV data file
 artigo.csv
+
+# Database
+hash-data-file.bin
+primary-index.bin
+secondary-index.bin

@@ -6,13 +6,13 @@
 #include "buffer/buffer.h"
 
 void Paper::print() {
-    std::cout << "id: " << id << "\n"
-              << "titulo: " << title << "\n"
-              << "ano: " << year << "\n"
-              << "snippet: " << snippet << "\n"
-              << "autores: " << authors << "\n"
-              << "citacoes: " << citations << "\n"
-              << "atualizacao: " << updated_at << "\n"
+    std::cout << "* Id: " << id << "\n\n"
+              << "* Título: " << title << "\n\n"
+              << "* Ano: " << year << "\n\n"
+              << "* Snippet: " << snippet << "\n\n"
+              << "* Autores: " << authors << "\n\n"
+              << "* Citações: " << citations << "\n\n"
+              << "* Atualizado em: " << updated_at << "\n\n"
               << "\n";
 }
 

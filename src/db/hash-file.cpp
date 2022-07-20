@@ -70,11 +70,11 @@ Paper* HashFile::get_paper_by_id(unsigned int paper_id) {
 
         if (paper != nullptr) {
             delete block_buffer;
+            std::cout << "Blocos lidos = " << i + 1 << std::endl;
             break;
         }
 
         delete block_buffer;
-        // std::cout << "crash" << std::endl;
     }
 
     return paper;
