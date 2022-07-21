@@ -26,6 +26,10 @@ std::stack<unsigned int> BPTree::get_path_to_leaf(unsigned int key) {
     // std::cout << root_index << std::endl;
     unsigned char* root_node_buffer = _tree_file.read_block(root_index);
 
+    if (key == 130562) {
+        std::cout << "rrot" << root_index << std::endl;
+    }
+
     path.push(root_index);
 
     if (is_leaf(root_node_buffer)) {
@@ -41,14 +45,32 @@ std::stack<unsigned int> BPTree::get_path_to_leaf(unsigned int key) {
         //     std::cout << "b" << std::endl;
         // }
         unsigned int matching_pointer = internal_block.get_matching_pointer(key);
-        // if (key == 130562) {
-        //     std::cout << "c" << std::endl;
-        // }
+
         // std::cout << "Dentro" << matching_pointer << std::endl;
         // break;
         path.push(matching_pointer);
 
         unsigned char* next_block_buffer = _tree_file.read_block(matching_pointer);
+
+        if (key == 130512 && matching_pointer != 0) {
+            std::cout << "pointer=" << matching_pointer << std::endl;
+
+            for (int i = 12; i <= 4092; i += 4) {
+                std::cout << ", " << read_4byte_number_from_buffer(next_block_buffer, i);
+            }
+
+            std::cout << std::endl;
+        }
+
+        // if (key == 130512 && matching_pointer == 514) {
+        //     std::cout << read_4byte_number_from_buffer(next_block_buffer, 12) << std::endl;
+        //     std::cout << read_4byte_number_from_buffer(next_block_buffer, 4092) << std::endl;
+        // }
+
+        // if (key == 130562 && matching_pointer == 512) {
+        //     std::cout << read_4byte_number_from_buffer(next_block_buffer, 12) << std::endl;
+        //     std::cout << read_4byte_number_from_buffer(next_block_buffer, 4092) << std::endl;
+        // }
 
         if (is_leaf(next_block_buffer)) {
             delete next_block_buffer;

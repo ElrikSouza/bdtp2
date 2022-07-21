@@ -18,7 +18,7 @@ bool is_key_inside_block(char* buffer, unsigned int key) {
 
 int main() {
     // int keys = 255 * 4 + 1;
-    int keys = 138000;
+    int keys = 132000;
     BPTree bptree;
 
     bptree.create_tree_file("index.bin");
@@ -35,7 +35,7 @@ int main() {
         aaa = bptree.get_data_pointer(i + 1);
         if (aaa != i * 2) {
             std::cout << std::endl << i + 1 << " didnt match " << aaa << "!=" << i * 2 << std::endl;
-            return 0;
+            // return 0;
         }
     }
 

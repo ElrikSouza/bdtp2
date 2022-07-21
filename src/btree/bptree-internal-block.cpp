@@ -164,17 +164,11 @@ unsigned int BPTreeInternalBlock::transfer_data_and_pointers_to_split_node(BPTre
 
     // header
     _buffer.jump_to_the_start();
-    _buffer.write_2byte_number(0);
-    _buffer.write_2byte_number(0);
-    _buffer.write_4byte_number(0);
-    _buffer.write_4byte_number(0);
+    _buffer.jump_n_bytes_from_current_position(12);
 
     // header
     split_node->_buffer.jump_to_the_start();
-    split_node->_buffer.write_2byte_number(0);
-    split_node->_buffer.write_2byte_number(0);
-    split_node->_buffer.write_4byte_number(0);
-    split_node->_buffer.write_4byte_number(0);
+    split_node->_buffer.jump_n_bytes_from_current_position(12);
 
     int keys_transfered = 0;
 
@@ -183,20 +177,23 @@ unsigned int BPTreeInternalBlock::transfer_data_and_pointers_to_split_node(BPTre
         _buffer.write_4byte_number(pointers[i]);
     }
 
-    std::cout << "second part\n";
+    std::cout << "second part\n" << keys[254] << "---" << keys[256] << std::endl;
     // ponteiro maior que (o fixo da direita)
     _buffer.jump_to_the_start();
     _buffer.jump_n_bytes_from_current_position(4092);
     _buffer.write_4byte_number(pointers[255]);
 
+    std::cout << pointers[255] << "/" << pointers[510] << " and " << keys[254] << "  " << keys[255] << "  "
+              << keys[256];
+
     for (int i = 256; i < 510; i++) {
-        split_node->_buffer.write_4byte_number(keys[keys_transfered]);
-        split_node->_buffer.write_4byte_number(pointers[keys_transfered - 1]);
+        split_node->_buffer.write_4byte_number(keys[i]);
+        split_node->_buffer.write_4byte_number(pointers[i]);
     }
 
     split_node->_buffer.jump_to_the_start();
     split_node->_buffer.jump_n_bytes_from_current_position(4092);
-    split_node->_buffer.write_4byte_number(pointers[keys_transfered - 1]);
+    split_node->_buffer.write_4byte_number(pointers[pointers.size() - 1]);
 
     std::cout << "done" << std::endl;
     return middle_key;
@@ -217,6 +214,10 @@ unsigned int BPTreeInternalBlock::get_matching_pointer(unsigned int search_key) 
             // retorna o ponteiro da chave
             return pointer;
         }
+    }
+
+    if (search_key == 130562) {
+        // std::cout << "offset=" << _buffer.get_current_cursor_position() << std::endl;
     }
 
     return _buffer.read_4byte_number();
