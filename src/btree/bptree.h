@@ -1,9 +1,8 @@
-#include "bptree-header-block.h"
-
 #include <stack>
 
 #include "../binary-file.h"
 #include "../buffer/buffer.h"
+#include "bptree-header-block.h"
 
 #pragma once
 
@@ -12,11 +11,11 @@ class BPTree {
     BPTreeHeaderBlock _header_block;
     BinaryFile _tree_file;
     unsigned int get_root_node();
-    std::stack<unsigned int> get_path_to_leaf(unsigned int key);
 
    public:
     BPTree();
 
+    std::stack<unsigned int> get_path_to_leaf(unsigned int key);
     void insert_key(unsigned int key, unsigned int data_file_block_index);
 
     // procura por uma chave na arvore, se existir, retorna um ponteiro para o bloco
@@ -30,4 +29,6 @@ class BPTree {
     void read_tree_file(const char* filename);
 
     bool is_leaf(unsigned char* block_buffer);
+
+    void commit_header();
 };

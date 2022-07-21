@@ -16,10 +16,6 @@ BPTreeLeafBlock::BPTreeLeafBlock() {
     _buffer.write_4byte_number(_first_block_index);
 
     _buffer.jump_to_the_start();
-    // unsigned int aa = _buffer.read_2byte_number();
-    // unsigned int bb = read_2byte_number_from_buffer((unsigned char*) _buffer.get_buffer_bytes(), 0);
-    // std::cout << "valor1 = " << aa << std::endl;
-    // std::cout << "valor2 = " << bb << std::endl;
 }
 
 BPTreeLeafBlock::BPTreeLeafBlock(unsigned char* block_buffer) {
@@ -43,70 +39,96 @@ unsigned int BPTreeLeafBlock::get_middle_key() {
     return _buffer.read_4byte_number();
 }
 
-void BPTreeLeafBlock::transfer_data_and_pointers_to_split_node(BPTreeLeafBlock* split_node, unsigned int split_node_block_index) {
+unsigned int BPTreeLeafBlock::get_first_key() {
     _jump_header_bytes();
-    // posiciona o cursor na chave do meio
-    _buffer.jump_n_bytes_from_current_position((_qt_keys / 2) * 8);
 
-    // copia os pares <chave,apontador> do meio ate o ultimo para o novo no
-    while(!_buffer.has_ended()) {
-        unsigned int key = _buffer.read_4byte_number();
-        unsigned int pointer = _buffer.read_4byte_number();
-        split_node->insert_key(key, pointer);
-    }
+    return _buffer.read_4byte_number();
+}
 
-    // corrige os ponteiros da lista encadeada
-    split_node->_next_block = _next_block;
-    _next_block = split_node_block_index;
+void BPTreeLeafBlock::transfer_data_and_pointers_to_split_node(BPTreeLeafBlock* split_node,
+                                                               unsigned int split_node_block_index) {
+    // write header
+    split_node->_buffer.jump_to_the_start();
+    split_node->_buffer.write_2byte_number(1);
+    split_node->_buffer.write_4byte_number(0);
+    split_node->_buffer.write_4byte_number(0);
+
+    // deixar no index pra escrever o next
+    split_node->_buffer.jump_n_bytes_from_current_position(4080);
+
+    _buffer.jump_to_the_start();
+    _buffer.jump_n_bytes_from_current_position(4092);
+
+    // atualizar os ponteiros next
+    unsigned int next = _buffer.read_4byte_number();
+    split_node->_buffer.write_4byte_number(next);
+
+    _buffer.jump_n_bytes_from_current_position(-4);
+    _buffer.write_4byte_number(split_node_block_index);
+
+    split_node->_buffer.jump_to_the_start();
+    split_node->_buffer.jump_n_bytes_from_current_position(12);
+    split_node->_buffer.write_bytes(_buffer.get_buffer_bytes() + 12 + 255 * 8, 255 * 8);
+
+    // zerar o resto do buffer do bloco original
+    char* zeros = new char[255 * 8];
+    _buffer.jump_to_the_start();
+    _buffer.jump_n_bytes_from_current_position(12 + 255 * 8);
+    _buffer.write_bytes(zeros, 255 * 8);
+    delete[] zeros;
 }
 
 bool BPTreeLeafBlock::are_there_free_slots() {
-    unsigned int current_key = _first_key_value;
+    // vamos pular para o slot da ultima chave (tem dois ponteiros na frente + o espaco da chave, por isso 12)
+    _buffer.jump_to_the_start();
+    _buffer.jump_n_bytes_from_current_position(4096 - 12);
 
-    _jump_header_bytes();
-    _buffer.jump_n_bytes_from_current_position(4);
-    while (!_buffer.has_ended()) {
-        if (current_key == 0) return true;
+    // nao tem como ter uma chave 0 no ultimo slot.
+    unsigned int last_key = _buffer.read_4byte_number();
 
-        current_key = _buffer.read_4byte_number();
-        _buffer.read_4byte_number();
+    if (last_key != 0) {
+        std::cout << "debug: full" << std::endl;
     }
 
-    return false;
+    // se tem 0  entao o ultimo slot ta vazio
+    return last_key == 0;
 }
 
 void BPTreeLeafBlock::insert_key(unsigned int key, unsigned int data_file_block_index) {
-    unsigned int current_key_value = _first_key_value;
-    unsigned int current_block_index = _first_block_index;
-
     _jump_header_bytes();
-    int offset = _buffer.get_current_cursor_position();
-    // insere ordenado no bloco
-    while (!_buffer.has_ended() && (key >= current_key_value)) {
-        current_key_value = _buffer.read_4byte_number();
-        current_block_index = _buffer.read_4byte_number();
+
+    unsigned int tree_key = _buffer.read_4byte_number();
+
+    // jump nos bytes do ponteiro de dados
+    _buffer.jump_n_bytes_from_current_position(4);
+
+    int keys_read = 0;
+
+    // procurar qual o index da nova chave dentro do bloco
+    while (tree_key < key && tree_key != 0) {
+        tree_key = _buffer.read_4byte_number();
+        _buffer.jump_n_bytes_from_current_position(4);
+        keys_read++;
     }
 
-    unsigned int aux_current_key_value = current_key_value;
-    unsigned int aux_current_block_index = current_block_index;
+    Buffer temp(4096);
 
-    // escreve o novo par na posicao correta
-    _buffer.write_4byte_number(key);
-    _buffer.write_4byte_number(data_file_block_index);
+    // vamos utilizar um novo buffer auxiliar para abrirmos um slot para os novos dados
 
-    // da shift no restante das chaves
-    while(!_buffer.has_ended()) {
-        current_key_value = read_4byte_number_from_buffer((unsigned char*) _buffer.get_buffer_bytes(), _buffer.get_current_cursor_position());
-        current_block_index = read_4byte_number_from_buffer((unsigned char*) _buffer.get_buffer_bytes(), _buffer.get_current_cursor_position() + 4);
+    // vamos copiar o header
+    char* original = _buffer.get_buffer_bytes();
 
-        _buffer.write_4byte_number(aux_current_key_value);
-        _buffer.write_4byte_number(aux_current_block_index);
+    int bytes_till_open_slot = keys_read * 8 + 12;
+    // vamos copiar o header e as chaves da esquerda
+    temp.write_bytes(original, bytes_till_open_slot);
 
-        aux_current_key_value = current_key_value;
-        aux_current_block_index = current_block_index;
-    }
+    // vamos colocar os novos dados
+    temp.write_4byte_number(key);
+    temp.write_4byte_number(data_file_block_index);
 
-    _qt_keys++;
+    // vamos colocar os dados da parte direita e substituir o buffer orignal
+    temp.write_bytes(original + bytes_till_open_slot, 4096 - bytes_till_open_slot);
+    _buffer = temp;
 }
 
 char* BPTreeLeafBlock::get_block_buffer() {

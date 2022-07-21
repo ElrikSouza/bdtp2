@@ -20,6 +20,7 @@ class BPTreeLeafBlock {
     void transfer_data_and_pointers_to_split_node(BPTreeLeafBlock* split_node, unsigned int split_node_block_index);
     bool are_there_free_slots();
     void insert_key(unsigned int key, unsigned int data_file_block_index);
+    unsigned int get_first_key();
 
     char* get_block_buffer();
 };
