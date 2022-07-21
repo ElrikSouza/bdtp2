@@ -55,6 +55,36 @@ std::stack<unsigned int> BPTree::get_path_to_leaf(unsigned int key) {
     return path;
 }
 
+unsigned int BPTree::get_data_pointer(unsigned int key) {
+    auto path = get_path_to_leaf(key);
+    // std::cout << "leaf= " << path.top() << std::endl;
+    unsigned int leaf_index = path.top();
+    Buffer b(_tree_file.read_block(leaf_index), 4096);
+    b.jump_n_bytes_from_current_position(12);
+
+    unsigned int current_key;
+    unsigned int current_pointer;
+    while (b.get_current_cursor_position() <= 4096 - 12) {
+        current_key = b.read_4byte_number();
+        current_pointer = b.read_4byte_number();
+        // std::cout << current_key << std::endl;
+        // std::cout << "read=(" << current_key << "," << current_pointer << std::endl;
+
+        if (current_key == key) {
+            // std::cout << "found" << std::endl;
+            return current_pointer;
+        }
+
+        if (current_key == 0) {
+            // std::cout << "not found" << std::endl;
+            return 0;
+        }
+    }
+
+    // std::cout << "not found" << std::endl;
+    return 0;
+}
+
 void BPTree::insert_key(unsigned int key, unsigned int data_file_index) {
     if (key == 511) {
         std::cout << "hmm";

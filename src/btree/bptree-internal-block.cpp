@@ -50,6 +50,12 @@ BPTreeInternalBlock::BPTreeInternalBlock(unsigned char* block_buffer) {
 //         aux_current_subtree_block_index = current_subtree_block_index;
 //     }
 // }
+unsigned int BPTreeInternalBlock::get_first_key() {
+    _buffer.jump_to_the_start();
+    _buffer.jump_n_bytes_from_current_position(12);
+
+    return _buffer.read_4byte_number();
+}
 
 unsigned int BPTreeInternalBlock::get_middle_key() {
     unsigned int current_key_value = _first_key_value;
@@ -160,20 +166,20 @@ unsigned int BPTreeInternalBlock::get_matching_pointer(unsigned int search_key) 
     return _buffer.read_4byte_number();
 }
 
-// verifica se o bloco possui espaco para alocar novas chaves
 bool BPTreeInternalBlock::are_there_free_slots() {
-    unsigned int current_key = _first_key_value;
-
+    // vamos pular para o slot da ultima chave (tem dois ponteiros na frente + o espaco da chave, por isso 12)
     _buffer.jump_to_the_start();
-    _buffer.jump_n_bytes_from_current_position(4);
-    while (!_buffer.has_ended()) {
-        if (current_key == 0) return true;
+    _buffer.jump_n_bytes_from_current_position(4096 - 12);
 
-        current_key = _buffer.read_4byte_number();
-        _buffer.read_4byte_number();
+    // nao tem como ter uma chave 0 no ultimo slot.
+    unsigned int last_key = _buffer.read_4byte_number();
+
+    if (last_key != 0) {
+        std::cout << "debug: full" << std::endl;
     }
 
-    return false;
+    // se tem 0  entao o ultimo slot ta vazio
+    return last_key == 0;
 }
 
 char* BPTreeInternalBlock::get_block_buffer() {

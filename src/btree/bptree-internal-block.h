@@ -22,4 +22,5 @@ class BPTreeInternalBlock {
     bool are_there_free_slots();
 
     char* get_block_buffer();
+    unsigned int get_first_key();
 };
