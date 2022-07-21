@@ -23,4 +23,5 @@ class BPTreeLeafBlock {
     unsigned int get_first_key();
 
     char* get_block_buffer();
+    void free();
 };

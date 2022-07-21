@@ -16,11 +16,14 @@ class BPTreeInternalBlock {
 
     void insert_key(unsigned int key, unsigned int split_node_block_index);
     unsigned int get_middle_key();
-    void transfer_data_and_pointers_to_split_node(BPTreeInternalBlock* split_node, unsigned int split_node_block_index);
+    unsigned int transfer_data_and_pointers_to_split_node(BPTreeInternalBlock* split_node,
+                                                          unsigned int split_node_block_index,
+                                                          unsigned int overflow_key);
 
     unsigned int get_matching_pointer(unsigned int key);
     bool are_there_free_slots();
 
     char* get_block_buffer();
     unsigned int get_first_key();
+    void free();
 };

@@ -124,3 +124,10 @@ std::string Buffer::read_fixed_length_string(int length) {
 char* Buffer::get_buffer_bytes() {
     return _internal_buffer;
 }
+
+void Buffer::free() {
+    if (!already_free) {
+        already_free = true;
+        delete[] _internal_buffer;
+    }
+}

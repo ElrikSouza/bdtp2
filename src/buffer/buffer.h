@@ -7,6 +7,7 @@ class Buffer {
     char* _internal_buffer;
     int _buffer_capacity;
     int _current_position;
+    bool already_free = false;
 
    public:
     Buffer(int buffer_capacity);
@@ -31,4 +32,6 @@ class Buffer {
     std::string read_fixed_length_string(int length);
 
     char* get_buffer_bytes();
+
+    void free();
 };

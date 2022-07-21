@@ -14,4 +14,5 @@ class BPTreeRootBlock {
 
     void insert_key(unsigned int key, unsigned int lesser_than, unsigned int greater_than);
     char* get_block_buffer();
+    void free();
 };

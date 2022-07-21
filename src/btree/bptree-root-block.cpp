@@ -24,3 +24,6 @@ void BPTreeRootBlock::insert_key(unsigned int key, unsigned int lesser_than, uns
 char* BPTreeRootBlock::get_block_buffer() {
     return _buffer.get_buffer_bytes();
 }
+void BPTreeRootBlock::free() {
+    _buffer.free();
+}

@@ -86,9 +86,9 @@ bool BPTreeLeafBlock::are_there_free_slots() {
     // nao tem como ter uma chave 0 no ultimo slot.
     unsigned int last_key = _buffer.read_4byte_number();
 
-    if (last_key != 0) {
-        std::cout << "debug: full" << std::endl;
-    }
+    // if (last_key != 0) {
+    //     std::cout << "debug: full" << std::endl;
+    // }
 
     // se tem 0  entao o ultimo slot ta vazio
     return last_key == 0;
@@ -128,9 +128,14 @@ void BPTreeLeafBlock::insert_key(unsigned int key, unsigned int data_file_block_
 
     // vamos colocar os dados da parte direita e substituir o buffer orignal
     temp.write_bytes(original + bytes_till_open_slot, 4096 - bytes_till_open_slot);
+    _buffer.free();
     _buffer = temp;
 }
 
 char* BPTreeLeafBlock::get_block_buffer() {
     return _buffer.get_buffer_bytes();
+}
+
+void BPTreeLeafBlock::free() {
+    _buffer.free();
 }
