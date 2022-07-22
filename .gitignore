@@ -39,3 +39,4 @@ hash-data-file.bin
 primary-index.bin
 secondary-index.bin
 *.bin
+bptree-test
