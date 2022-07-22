@@ -98,19 +98,11 @@ void BPTreeInternalBlock::insert_key(unsigned int key, unsigned int pointer) {
         _buffer.jump_n_bytes_from_current_position(4092);
         _buffer.write_4byte_number(pointers[pointers.size() - 1]);
     }
-
-    // for (int a : keys) {
-    //     std::cout << a << ",";
-    // }
-    // std::cout << "\n";
-
-    // for (int a : pointers) {
-    //     std::cout << a << ",";
-    // }
 }
 
 unsigned int BPTreeInternalBlock::transfer_data_and_pointers_to_split_node(BPTreeInternalBlock* split_node,
-                                                                           unsigned int _, unsigned int overflow_key) {
+                                                                           unsigned int overflow_key_pointer,
+                                                                           unsigned int overflow_key) {
     _buffer.jump_to_the_start();
     _buffer.jump_n_bytes_from_current_position(12);
 
@@ -122,7 +114,7 @@ unsigned int BPTreeInternalBlock::transfer_data_and_pointers_to_split_node(BPTre
 
     std::cout << current_key << std::endl;
 
-    while (_buffer.get_current_cursor_position() <= 4096 - 12 && current_key != 0) {
+    while (_buffer.get_current_cursor_position() <= 4092 && current_key != 0) {
         keys.push_back(current_key);
         pointers.push_back(current_pointer);
 
@@ -148,6 +140,10 @@ unsigned int BPTreeInternalBlock::transfer_data_and_pointers_to_split_node(BPTre
     }
 
     keys.insert(keys.begin() + new_key_index, overflow_key);
+    std::cout << "pointers= " << pointers.size();
+    pointers.insert(pointers.begin() + new_key_index, overflow_key_pointer);
+    std::cout << "pointers= " << pointers.size();
+    // std::cout << "last= " << pointers();
 
     // se a funcao esta sendo chamada, esse bloco tem 510 chaves
     unsigned int middle_key = keys[255];
@@ -171,6 +167,7 @@ unsigned int BPTreeInternalBlock::transfer_data_and_pointers_to_split_node(BPTre
     split_node->_buffer.jump_n_bytes_from_current_position(12);
 
     int keys_transfered = 0;
+    int middle = keys.size() / 2;
 
     for (int i = 0; i < 255; i++) {
         _buffer.write_4byte_number(keys[i]);
@@ -191,9 +188,11 @@ unsigned int BPTreeInternalBlock::transfer_data_and_pointers_to_split_node(BPTre
         split_node->_buffer.write_4byte_number(pointers[i]);
     }
 
+    std::cout << pointers[509] << std::endl;
     split_node->_buffer.jump_to_the_start();
     split_node->_buffer.jump_n_bytes_from_current_position(4092);
     split_node->_buffer.write_4byte_number(pointers[pointers.size() - 1]);
+    std::cout << pointers[pointers.size() - 1] << std::endl;
 
     std::cout << "done" << std::endl;
     return middle_key;

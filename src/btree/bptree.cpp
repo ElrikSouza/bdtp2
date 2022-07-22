@@ -62,6 +62,16 @@ std::stack<unsigned int> BPTree::get_path_to_leaf(unsigned int key) {
             std::cout << std::endl;
         }
 
+        // if (key > 130500 && matching_pointer != 516) {
+        //     std::cout << "pointer=" << matching_pointer << std::endl;
+
+        //     for (int i = 12; i <= 4092; i += 4) {
+        //         std::cout << ", " << read_4byte_number_from_buffer(next_block_buffer, i);
+        //     }
+
+        //     std::cout << std::endl;
+        // }
+
         // if (key == 130512 && matching_pointer == 514) {
         //     std::cout << read_4byte_number_from_buffer(next_block_buffer, 12) << std::endl;
         //     std::cout << read_4byte_number_from_buffer(next_block_buffer, 4092) << std::endl;
@@ -191,7 +201,7 @@ void BPTree::insert_key(unsigned int key, unsigned int data_file_index) {
         left_node_index = parent_index;
         right_node_index = _header_block.get_next_free_block_and_point_to_next();
 
-        promoted_key = parent.transfer_data_and_pointers_to_split_node(&split_internal, 0, promoted_key);
+        promoted_key = parent.transfer_data_and_pointers_to_split_node(&split_internal, right_node_index, promoted_key);
 
         _tree_file.write_block(split_internal.get_block_buffer(), right_node_index);
         _tree_file.write_block(parent.get_block_buffer(), parent_index);
