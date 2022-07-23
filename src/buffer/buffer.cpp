@@ -41,6 +41,8 @@ void Buffer::jump_to_the_start() {
 
 void Buffer::write_2byte_number(unsigned short int number) {
     if (_current_position + 2 > _buffer_capacity) {
+        std::cout << "NUMBER2 = " << number << " POSICAO ATUAL = " << _current_position << " CAPACIDADE" << _buffer_capacity << std::endl;
+
         std::cout << "ERRO: BUFFER OVERFLOW"
                   << "\n";
         return;
@@ -51,7 +53,8 @@ void Buffer::write_2byte_number(unsigned short int number) {
 }
 
 void Buffer::write_4byte_number(unsigned int number) {
-    if (_current_position + 2 > _buffer_capacity) {
+    if (_current_position + 4 > _buffer_capacity) {
+    std::cout << "NUMBER4 = " << number << " POSICAO ATUAL = " << _current_position << " CAPACIDADE" << _buffer_capacity << std::endl;
         std::cout << "ERRO: BUFFER OVERFLOW"
                   << "\n";
         return;

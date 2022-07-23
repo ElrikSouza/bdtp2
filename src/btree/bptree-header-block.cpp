@@ -35,7 +35,6 @@ unsigned int BPTreeHeaderBlock::get_next_free_block_and_point_to_next() {
     _buffer.jump_to_the_start();
     _buffer.jump_n_bytes_from_current_position(4);
     _buffer.write_4byte_number(_next_free_block_index);
-    _buffer.jump_to_the_start();
 
     return old_free_block;
 }

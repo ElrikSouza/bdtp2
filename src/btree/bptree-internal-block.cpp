@@ -7,6 +7,7 @@
 #define MAX_KEYS_PER_BLOCK 510
 
 BPTreeInternalBlock::BPTreeInternalBlock(int block_size) {
+    std::cout << "AQUI" << std::endl;
     _buffer = Buffer(block_size);
 
     // header data
@@ -162,12 +163,11 @@ void BPTreeInternalBlock::insert_key(unsigned int key, unsigned int node_block_i
     _buffer.jump_to_the_start();
     _buffer.jump_n_bytes_from_current_position(2);
     unsigned short int qt_keys = _buffer.read_2byte_number();
-    int keys_read = 0;
-
     _buffer.jump_n_bytes_from_current_position(8);
 
     unsigned int current_block_index = _buffer.read_4byte_number();
     unsigned int current_key = _buffer.read_4byte_number();
+    int keys_read = 1;
 
     // encontra a posicao correta para inserir a chave
     while (keys_read < qt_keys && key > current_key) {
@@ -180,6 +180,11 @@ void BPTreeInternalBlock::insert_key(unsigned int key, unsigned int node_block_i
     //insere a chave na posicao correta
     unsigned int aux_index = current_block_index;
     unsigned int aux_key = current_key;
+
+    if (qt_keys == 0) {
+        _buffer.jump_to_the_start();
+        _buffer.jump_n_bytes_from_current_position(12);
+    }
     _buffer.write_4byte_number(node_block_index);
     _buffer.write_4byte_number(key);
     // da um shift no restante das chaves

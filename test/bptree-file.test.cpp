@@ -1,5 +1,6 @@
 #include "../src/btree/bptree.h"
 #include "../src/buffer/buffer.h"
+#include "../src/btree/bptree-internal-block.h"
 
 bool is_key_inside_block(char* buffer, unsigned int key) {
     Buffer b((unsigned char*)buffer, 4096);
@@ -20,12 +21,18 @@ int main() {
     // int keys = 255 * 4 + 1;
     int keys = 1500000;
     BPTree bptree;
+    int qtd_keys = 0;
 
     bptree.create_tree_file("index.bin");
     std::cout << "Arquivo criado" << std::endl;
 
     for (int i = 0; i < keys; i++) {
         bptree.insert_key(i + 1, i * 2);
+        qtd_keys++;
+
+        if (qtd_keys == 510) {
+            std::cout << ">>>>>>CHEGOU NO LIMITE" << std::endl;
+        }
     }
 
     std::cout << "checking" << std::endl;

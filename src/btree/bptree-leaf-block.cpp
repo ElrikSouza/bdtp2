@@ -132,15 +132,17 @@ void BPTreeLeafBlock::insert_key(unsigned int key, unsigned int data_file_block_
     _buffer.jump_to_the_start();
     _buffer.jump_n_bytes_from_current_position(2);
     unsigned short int qt_keys = _buffer.read_2byte_number();
-    int keys_read = 0;
 
     _buffer.jump_n_bytes_from_current_position(8);
 
     unsigned int current_block_index = _buffer.read_4byte_number();
     unsigned int current_key = _buffer.read_4byte_number();
+    int keys_read = 1;
 
     // encontra a posicao correta para inserir a chave
     while (keys_read < qt_keys && key > current_key) {
+        // std::cout << "CURRENT INDEX = " << current_block_index << " CURRENT KEY = " << current_key << std::endl;
+        // std::cout << "QT KEYS = " << qt_keys << " KEYS READ = " << keys_read << std::endl;
         current_block_index = _buffer.read_4byte_number();
         current_key = _buffer.read_4byte_number();
 
@@ -150,8 +152,15 @@ void BPTreeLeafBlock::insert_key(unsigned int key, unsigned int data_file_block_
     //insere a chave na posicao correta
     unsigned int aux_index = current_block_index;
     unsigned int aux_key = current_key;
+
+    if (qt_keys == 0) {
+        _buffer.jump_to_the_start();
+        _buffer.jump_n_bytes_from_current_position(12);
+    }
+
     _buffer.write_4byte_number(data_file_block_index);
     _buffer.write_4byte_number(key);
+
     // da um shift no restante das chaves
     while(keys_read < qt_keys) {
         unsigned int current_position = _buffer.get_current_cursor_position();

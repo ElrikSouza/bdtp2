@@ -9,11 +9,18 @@
  * no split da árvore B+.
  */
 class AuxiliarBlock {
-    private: 
+    private:
+        unsigned int _block_size;
         Buffer _buffer{nullptr, 0};
 
     public:
         AuxiliarBlock(char* bytes, int block_size);
+        AuxiliarBlock(int block_size);
         BPTreeLeafBlock* deserialize_into_leaf_block();
         BPTreeInternalBlock* deserialize_into_internal_block();
+        void copy_all_key_pointer(char* bytes, int num_of_bytes);
+        void copy_first_half_of_key_pointer_to_buffer(char* bytes);
+        void copy_second_half_of_key_pointer_to_buffer(char* bytes);
+        void insert_key_pointer(unsigned int key, unsigned int block_index);
+        char* get_block_buffer();
 };
