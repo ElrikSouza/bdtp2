@@ -2,10 +2,8 @@
 
 #include <vector>
 
+#include "../src/config.h"
 #include "../src/parsing/paper-stream.h"
-
-#define BUCKETS 400000
-#define BLOCKS_PER_BUCKET 1
 
 bool are_papers_identical(Paper* paper_a, Paper* paper_b) {
     return (paper_a->id == paper_b->id) && (paper_a->authors == paper_b->authors) && (paper_a->year == paper_b->year) &&

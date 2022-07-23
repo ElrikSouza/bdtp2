@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "../binary-file.h"
+#include "../config.h"
 #include "../paper-block.h"
 #include "../paper.h"
 
@@ -12,7 +13,7 @@ HashFile::HashFile(int number_of_buckets, int blocks_per_bucket) {
     _number_of_buckets = number_of_buckets;
 
     int total_num_of_blocks = number_of_buckets * blocks_per_bucket;
-    _bin_file = BinaryFile(total_num_of_blocks, 4096);
+    _bin_file = BinaryFile(total_num_of_blocks, BLOCK_SIZE);
 }
 
 int HashFile::hash_paper(unsigned int paper_id) {
@@ -32,27 +33,33 @@ void HashFile::open_file_for_reading(const char* filename) {
     _bin_file.open_as_readonly(filename);
 }
 
-void HashFile::insert_paper(Paper* paper) {
+unsigned int HashFile::insert_paper(Paper* paper) {
     int bucket_number = hash_paper(paper->id);
-    int current_block;
     unsigned char* block_buffer;
+    int current_block;
 
+    // vamos tentar inserir o artigo no primeiro bloco livre do bucket
     for (int i = 0; i < _blocks_per_bucket; i++) {
         current_block = bucket_number * _blocks_per_bucket + i;
         block_buffer = _bin_file.read_block(current_block);
         PaperBlock block(block_buffer);
-        bool didTheInsertionSucceed = block.insert_paper(paper);
+        bool did_insertion_succeed = block.insert_paper(paper);
 
-        if (didTheInsertionSucceed) {
+        if (did_insertion_succeed) {
+            // conseguimos inserir, então vamos gravar no disco e retornar o bloco onde
+            // foi gravado
             _bin_file.write_block(block.get_block_buffer(), current_block);
             delete block_buffer;
-            return;
+            return current_block;
         }
 
         delete block_buffer;
     }
 
-    std::cout << "sem espaco" << std::endl;
+    std::cout << "Não foi possível inserir o artigo. Desligando..." << std::endl;
+    exit(1);
+
+    return 0;
 }
 
 Paper* HashFile::get_paper_by_id(unsigned int paper_id) {
@@ -61,6 +68,8 @@ Paper* HashFile::get_paper_by_id(unsigned int paper_id) {
     unsigned char* block_buffer;
     Paper* paper = nullptr;
 
+    // sabemos em qual bucket o artigo pode estar, mas não sabemos em que bloco ele está
+    // então vamos iterar por todos os blocos do bucket até achar
     for (int i = 0; i < _blocks_per_bucket; i++) {
         current_block = bucket_number * _blocks_per_bucket + i;
         block_buffer = _bin_file.read_block(current_block);
@@ -68,14 +77,15 @@ Paper* HashFile::get_paper_by_id(unsigned int paper_id) {
 
         paper = block.get_paper_if_it_is_inside(paper_id);
 
+        delete block_buffer;
+
         if (paper != nullptr) {
-            delete block_buffer;
             std::cout << "Blocos lidos = " << i + 1 << std::endl;
             break;
         }
-
-        delete block_buffer;
     }
 
+    // se não encontramos, então paper vai continuar sendo um nullptr
+    // caso contrario, ele vai ter o artigo correto.
     return paper;
 }

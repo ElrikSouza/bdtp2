@@ -51,7 +51,6 @@ Paper* PaperBlock::get_paper_if_it_is_inside(unsigned int target_paper_id) {
 
         // go next
         _buffer.jump_n_bytes_from_current_position(paper_register_size);
-        // std::cout << _buffer.get_current_cursor_position() << std::endl;
     }
 
     return nullptr;

@@ -31,6 +31,10 @@ void Buffer::jump_n_bytes_from_current_position(int bytes) {
     _current_position += bytes;
 }
 
+void Buffer::jump_to_absolute_position(int position_in_bytes) {
+    _current_position = position_in_bytes;
+}
+
 void Buffer::jump_to_the_start() {
     _current_position = 0;
 }

@@ -1,8 +1,6 @@
+#include "../config.h"
 #include "../db/hash-file.h"
 #include "../parsing/paper-stream.h"
-
-#define BUCKETS 400000
-#define BLOCKS_PER_BUCKET 1
 
 int main(int argc, char const *argv[]) {
     PaperStream stream;
@@ -12,7 +10,7 @@ int main(int argc, char const *argv[]) {
     stream.open_source_file(filename);
 
     HashFile hash_file(BUCKETS, BLOCKS_PER_BUCKET);
-    hash_file.create_and_open_for_writing("hash-data-file.bin");
+    hash_file.create_and_open_for_writing(HASH_FILE_NAME);
     Paper *current_paper;
 
     int total_papers = 0;

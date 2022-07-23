@@ -24,7 +24,9 @@ class Paper {
 
     unsigned short int get_register_size();
 
+    // transforma o artigo em um buffer
     const char* serialize();
 
+    // transforma um buffer em um artigo
     void deserialize(unsigned char* buffer, int buffer_offset);
 };
