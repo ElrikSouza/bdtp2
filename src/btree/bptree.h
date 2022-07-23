@@ -12,6 +12,9 @@ class BPTree {
     BinaryFile _tree_file;
     unsigned int get_root_node();
 
+    void insert_in_leaf(unsigned char* leaf, unsigned int key, unsigned int data_file_block_index);
+    void insert_in_parent(std::stack<unsigned int> path_to_leaf, unsigned char* node, unsigned int key, unsigned int data_file_block_index);
+
    public:
     BPTree();
 

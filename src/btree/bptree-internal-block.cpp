@@ -4,23 +4,81 @@
 
 #include "../buffer/buffer-utils.h"
 
-BPTreeInternalBlock::BPTreeInternalBlock() {
-    _first_key_value = 0;
+#define MAX_KEYS_PER_BLOCK 510
+
+BPTreeInternalBlock::BPTreeInternalBlock(int block_size) {
+    _buffer = Buffer(block_size);
+
+    // header data
+    _is_leaf = 0;
+    _buffer.write_2byte_number(_is_leaf);
+    _qt_keys = 0;
+    _buffer.write_2byte_number(_qt_keys);
+
+    _buffer.jump_n_bytes_from_current_position(8);
+
+    // <ptr,key> pair
     _first_subtree_block_index = 0;
-    _buffer = Buffer(4096);
+    _buffer.write_4byte_number(_first_subtree_block_index);
+    _first_key_value = 0;
+    _buffer.write_4byte_number(_first_key_value);
+
+    // ptr last subtree
+    _buffer.jump_to_the_start();
+    _buffer.jump_n_bytes_from_current_position(4092);
+    _last_subtree_block_index = 0;
+    _buffer.write_4byte_number(_last_subtree_block_index);
 }
 
-BPTreeInternalBlock::BPTreeInternalBlock(unsigned char* block_buffer) {
-    _first_key_value = read_4byte_number_from_buffer(block_buffer, 0);
-    _first_subtree_block_index = read_4byte_number_from_buffer(block_buffer, 4);
-    _buffer = Buffer(block_buffer, 4096);
+BPTreeInternalBlock::BPTreeInternalBlock(unsigned char* block_buffer, int block_size) {
+    _buffer = Buffer(block_buffer, block_size);
+
+    // header data
+    _is_leaf = read_2byte_number_from_buffer(block_buffer, 0);
+    _buffer.write_2byte_number(_is_leaf);
+    _qt_keys = read_2byte_number_from_buffer(block_buffer, 2);
+    _buffer.write_2byte_number(_qt_keys);
+
+    _buffer.jump_n_bytes_from_current_position(8);
+
+    // <ptr,key> pair
+    _first_subtree_block_index = read_4byte_number_from_buffer(block_buffer, 12);
+    _buffer.write_4byte_number(_first_subtree_block_index);
+    _first_key_value = read_4byte_number_from_buffer(block_buffer, 16);
+    _buffer.write_4byte_number(_first_key_value);
+
+    // ptr last subtree
+    _buffer.jump_to_the_start();
+    _buffer.jump_n_bytes_from_current_position(4092);
+    _last_subtree_block_index = read_4byte_number_from_buffer(block_buffer, 4092);
+    _buffer.write_4byte_number(_last_subtree_block_index);
+}
+
+void BPTreeInternalBlock::_jump_header_bytes() {
+    _buffer.jump_to_the_start();
+    _buffer.jump_n_bytes_from_current_position(12);
 }
 
 unsigned int BPTreeInternalBlock::get_first_key() {
-    _buffer.jump_to_the_start();
-    _buffer.jump_n_bytes_from_current_position(12);
+    _jump_header_bytes();
+    _buffer.jump_n_bytes_from_current_position(4);
 
     return _buffer.read_4byte_number();
+}
+
+void BPTreeInternalBlock::insert_key_for_root(unsigned int old_root_index, unsigned int key, unsigned int new_node) {
+    _buffer.jump_to_the_start();
+    _buffer.jump_n_bytes_from_current_position(2);
+    _buffer.write_2byte_number(1);
+
+    _buffer.jump_n_bytes_from_current_position(8);
+
+    _buffer.write_4byte_number(old_root_index);
+    _buffer.write_4byte_number(key);
+
+    _buffer.jump_to_the_start();
+    _buffer.jump_n_bytes_from_current_position(4092);
+    _buffer.write_4byte_number(new_node);
 }
 
 unsigned int BPTreeInternalBlock::get_middle_key() {
@@ -43,61 +101,145 @@ unsigned int BPTreeInternalBlock::get_middle_key() {
     return _buffer.read_4byte_number();
 }
 
-void BPTreeInternalBlock::insert_key(unsigned int key, unsigned int pointer) {
+// void BPTreeInternalBlock::insert_key(unsigned int key, unsigned int pointer) {
+//     _buffer.jump_to_the_start();
+//     _buffer.jump_n_bytes_from_current_position(12);
+
+//     std::vector<unsigned int> keys;
+//     std::vector<unsigned int> pointers;
+
+//     unsigned int current_key = _buffer.read_4byte_number();
+//     unsigned int current_pointer = _buffer.read_4byte_number();
+
+//     while (_buffer.get_current_cursor_position() <= 4096 - 12 && current_key != 0) {
+//         keys.push_back(current_key);
+//         pointers.push_back(current_pointer);
+
+//         current_key = _buffer.read_4byte_number();
+//         current_pointer = _buffer.read_4byte_number();
+//     }
+
+//     _buffer.jump_to_the_start();
+//     _buffer.jump_n_bytes_from_current_position(4092);
+
+//     unsigned int greater_than_pointer = _buffer.read_4byte_number();
+
+//     if (greater_than_pointer != 0) {
+//         pointers.push_back(greater_than_pointer);
+//     }
+
+//     int new_key_index = 0;
+//     // std::cout << "[debug] keys" << keys.size() << std::endl;
+//     while (key > keys[new_key_index] && new_key_index < keys.size()) {
+//         new_key_index++;
+//     }
+
+//     if (keys.size() < pointers.size() && new_key_index == keys.size()) {
+//         pointers.insert(pointers.begin() + new_key_index + 1, pointer);
+//     } else {
+//         pointers.insert(pointers.begin() + new_key_index, pointer);
+//     }
+
+//     keys.insert(keys.begin() + new_key_index, key);
+
+//     _buffer.jump_to_the_start();
+//     _buffer.jump_n_bytes_from_current_position(12);
+
+//     for (int i = 0; i < keys.size(); i++) {
+//         _buffer.write_4byte_number(keys[i]);
+//         _buffer.write_4byte_number(pointers[i]);
+//     }
+
+//     // se tiver um ponteiro ¨maior que¨ a ultima chave, coloca esse ponteiro de volta
+//     if (pointers.size() > keys.size()) {
+//         _buffer.jump_to_the_start();
+//         _buffer.jump_n_bytes_from_current_position(4092);
+//         _buffer.write_4byte_number(pointers[pointers.size() - 1]);
+//     }
+// }
+
+void BPTreeInternalBlock::insert_key(unsigned int key, unsigned int node_block_index) {
     _buffer.jump_to_the_start();
-    _buffer.jump_n_bytes_from_current_position(12);
+    _buffer.jump_n_bytes_from_current_position(2);
+    unsigned short int qt_keys = _buffer.read_2byte_number();
+    int keys_read = 0;
 
-    std::vector<unsigned int> keys;
-    std::vector<unsigned int> pointers;
+    _buffer.jump_n_bytes_from_current_position(8);
 
+    unsigned int current_block_index = _buffer.read_4byte_number();
     unsigned int current_key = _buffer.read_4byte_number();
-    unsigned int current_pointer = _buffer.read_4byte_number();
 
-    while (_buffer.get_current_cursor_position() <= 4096 - 12 && current_key != 0) {
-        keys.push_back(current_key);
-        pointers.push_back(current_pointer);
-
+    // encontra a posicao correta para inserir a chave
+    while (keys_read < qt_keys && key > current_key) {
+        current_block_index = _buffer.read_4byte_number();
         current_key = _buffer.read_4byte_number();
-        current_pointer = _buffer.read_4byte_number();
+
+        keys_read++;
     }
 
-    _buffer.jump_to_the_start();
-    _buffer.jump_n_bytes_from_current_position(4092);
+    //insere a chave na posicao correta
+    unsigned int aux_index = current_block_index;
+    unsigned int aux_key = current_key;
+    _buffer.write_4byte_number(node_block_index);
+    _buffer.write_4byte_number(key);
+    // da um shift no restante das chaves
+    while(keys_read < qt_keys) {
+        unsigned int current_position = _buffer.get_current_cursor_position();
+        current_block_index = _buffer.read_4byte_number();
+        current_key = _buffer.read_4byte_number();
 
-    unsigned int greater_than_pointer = _buffer.read_4byte_number();
-
-    if (greater_than_pointer != 0) {
-        pointers.push_back(greater_than_pointer);
-    }
-
-    int new_key_index = 0;
-    // std::cout << "[debug] keys" << keys.size() << std::endl;
-    while (key > keys[new_key_index] && new_key_index < keys.size()) {
-        new_key_index++;
-    }
-
-    if (keys.size() < pointers.size() && new_key_index == keys.size()) {
-        pointers.insert(pointers.begin() + new_key_index + 1, pointer);
-    } else {
-        pointers.insert(pointers.begin() + new_key_index, pointer);
-    }
-
-    keys.insert(keys.begin() + new_key_index, key);
-
-    _buffer.jump_to_the_start();
-    _buffer.jump_n_bytes_from_current_position(12);
-
-    for (int i = 0; i < keys.size(); i++) {
-        _buffer.write_4byte_number(keys[i]);
-        _buffer.write_4byte_number(pointers[i]);
-    }
-
-    // se tiver um ponteiro ¨maior que¨ a ultima chave, coloca esse ponteiro de volta
-    if (pointers.size() > keys.size()) {
         _buffer.jump_to_the_start();
-        _buffer.jump_n_bytes_from_current_position(4092);
-        _buffer.write_4byte_number(pointers[pointers.size() - 1]);
+        _buffer.jump_n_bytes_from_current_position(current_position);
+
+        _buffer.write_4byte_number(aux_index);
+        _buffer.write_4byte_number(aux_key);
+
+        aux_index = current_block_index;
+        current_key = current_key;
+
+        keys_read++;
     }
+
+    // atualiza a quantidade de chaves
+    _buffer.jump_to_the_start();
+    _buffer.jump_n_bytes_from_current_position(2);
+    _buffer.write_2byte_number(qt_keys + 1);
+}
+
+void BPTreeInternalBlock::transfer_first_half_of_keys_and_pointers(BPTreeInternalBlock* internal) {
+    _buffer.jump_to_the_start();
+    _buffer.jump_n_bytes_from_current_position(2);
+    unsigned short int qt_keys = _buffer.read_2byte_number();
+    _buffer.jump_n_bytes_from_current_position(8);
+
+    for (int i = 0; i < qt_keys / 2; i++) {
+        unsigned int current_index = _buffer.read_4byte_number();
+        unsigned int current_key = _buffer.read_4byte_number();
+
+        write_4byte_number_to_buffer(internal->get_block_buffer(), current_index, i + 12);
+        write_4byte_number_to_buffer(internal->get_block_buffer(), current_key, i + 12 + 4);
+    }
+
+    // atualiza a quantidade de chaves do header
+    write_2byte_number_to_buffer(internal->get_block_buffer(), qt_keys / 2, 2);
+}
+
+void BPTreeInternalBlock::transfer_second_half_of_keys_and_pointers(BPTreeInternalBlock* internal) {
+    _buffer.jump_to_the_start();
+    _buffer.jump_n_bytes_from_current_position(2);
+    unsigned short int qt_keys = _buffer.read_2byte_number();
+    _buffer.jump_n_bytes_from_current_position(8);
+
+    for (int i = qt_keys / 2; i < qt_keys; i++) {
+        unsigned int current_index = _buffer.read_4byte_number();
+        unsigned int current_key = _buffer.read_4byte_number();
+
+        write_4byte_number_to_buffer(internal->get_block_buffer(), current_index, i + 12);
+        write_4byte_number_to_buffer(internal->get_block_buffer(), current_key, i + 12 + 4);
+    }
+
+    // atualiza a quantidade de chaves do header
+    write_2byte_number_to_buffer(internal->get_block_buffer(), 1 + qt_keys / 2, 2);
 }
 
 unsigned int BPTreeInternalBlock::transfer_data_and_pointers_to_split_node(BPTreeInternalBlock* split_node,
@@ -222,20 +364,27 @@ unsigned int BPTreeInternalBlock::get_matching_pointer(unsigned int search_key) 
     return _buffer.read_4byte_number();
 }
 
+// bool BPTreeInternalBlock::are_there_free_slots() {
+//     // vamos pular para o slot da ultima chave (tem dois ponteiros na frente + o espaco da chave, por isso 12)
+//     _buffer.jump_to_the_start();
+//     _buffer.jump_n_bytes_from_current_position(4096 - 12);
+
+//     // nao tem como ter uma chave 0 no ultimo slot.
+//     unsigned int last_key = _buffer.read_4byte_number();
+
+//     // if (last_key != 0) {
+//     //     std::cout << "debug: full" << std::endl;
+//     // }
+
+//     // se tem 0  entao o ultimo slot ta vazio
+//     return last_key == 0;
+// }
+
 bool BPTreeInternalBlock::are_there_free_slots() {
-    // vamos pular para o slot da ultima chave (tem dois ponteiros na frente + o espaco da chave, por isso 12)
     _buffer.jump_to_the_start();
-    _buffer.jump_n_bytes_from_current_position(4096 - 12);
+    _buffer.jump_n_bytes_from_current_position(2);
 
-    // nao tem como ter uma chave 0 no ultimo slot.
-    unsigned int last_key = _buffer.read_4byte_number();
-
-    // if (last_key != 0) {
-    //     std::cout << "debug: full" << std::endl;
-    // }
-
-    // se tem 0  entao o ultimo slot ta vazio
-    return last_key == 0;
+    return _buffer.read_2byte_number() < MAX_KEYS_PER_BLOCK;
 }
 
 char* BPTreeInternalBlock::get_block_buffer() {

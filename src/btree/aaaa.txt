@@ -48,3 +48,17 @@ int aaa() {
 // tests
 // [] find every key through search
 // [] find every key sequentially in the right order via "next leaf block" pointers
+
+
+
+Nós da árvore
+
+interno:
+ptr1,chave1,ptrmaior
+ptrmenor1,chave1,ptrmenor2,chave2, ..., prtmenorN,chaveN,ptrmaior
+(ptr,chave)*n + 1
+
+folha:
+ptr1,chave1,ptrprox
+ptr1,chave1,ptr2,chave2, ..., ptrN,chaveN, ptrprox
+(ptr,chave)*n + 1
