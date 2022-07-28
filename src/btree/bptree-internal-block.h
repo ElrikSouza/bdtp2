@@ -14,10 +14,12 @@ class BPTreeInternalBlock {
     void _jump_header_bytes();
 
    public:
-    BPTreeInternalBlock(int block_size);
-    BPTreeInternalBlock(unsigned char* block_buffer, int block_size);
+    BPTreeInternalBlock();
+    BPTreeInternalBlock(unsigned char* block_buffer);
 
     void insert_key_for_root(unsigned int old_root_index, unsigned int key, unsigned int new_node);
+    unsigned short int get_qt_keys();
+    unsigned int get_last_subtree_index();
     void transfer_first_half_of_keys_and_pointers(BPTreeInternalBlock* internal);
     void transfer_second_half_of_keys_and_pointers(BPTreeInternalBlock* internal);
 

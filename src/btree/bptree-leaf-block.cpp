@@ -4,8 +4,8 @@
 
 #define MAX_KEYS_PER_BLOCK 510
 
-BPTreeLeafBlock::BPTreeLeafBlock(int block_size) {
-    _buffer = Buffer(block_size);
+BPTreeLeafBlock::BPTreeLeafBlock() {
+    _buffer = Buffer(4096);
 
     // header data
     _is_leaf = 1;
@@ -28,8 +28,8 @@ BPTreeLeafBlock::BPTreeLeafBlock(int block_size) {
     _buffer.write_4byte_number(_next_block);
 }
 
-BPTreeLeafBlock::BPTreeLeafBlock(unsigned char* block_buffer, int block_size) {
-    _buffer = Buffer(block_buffer, block_size);
+BPTreeLeafBlock::BPTreeLeafBlock(unsigned char* block_buffer) {
+    _buffer = Buffer(block_buffer, 4096);
 
     // header data
     _is_leaf = read_2byte_number_from_buffer(block_buffer, 0);
@@ -66,8 +66,7 @@ unsigned int BPTreeLeafBlock::get_middle_key() {
 }
 
 unsigned int BPTreeLeafBlock::get_first_key() {
-    _jump_header_bytes();
-    _buffer.jump_n_bytes_from_current_position(4);
+    _buffer.jump_to_absolute_position(16);
 
     return _buffer.read_4byte_number();
 }
@@ -122,40 +121,41 @@ void BPTreeLeafBlock::transfer_data_and_pointers_to_split_node(BPTreeLeafBlock* 
 // }
 
 bool BPTreeLeafBlock::are_there_free_slots() {
-    _buffer.jump_to_the_start();
-    _buffer.jump_n_bytes_from_current_position(2);
+    _buffer.jump_to_absolute_position(2);
 
     return _buffer.read_2byte_number() < MAX_KEYS_PER_BLOCK;
 }
 
+/**
+ * assumindo que sempre ha espaco, ou seja, nao eh necessario alterar o ponteiro da lista encadeada
+ */
 void BPTreeLeafBlock::insert_key(unsigned int key, unsigned int data_file_block_index) {
-    _buffer.jump_to_the_start();
-    _buffer.jump_n_bytes_from_current_position(2);
+    _buffer.jump_to_absolute_position(2);
     unsigned short int qt_keys = _buffer.read_2byte_number();
 
-    _buffer.jump_n_bytes_from_current_position(8);
+    _buffer.jump_to_absolute_position(12);
 
-    unsigned int current_block_index = _buffer.read_4byte_number();
+    unsigned int current_index = _buffer.read_4byte_number();
     unsigned int current_key = _buffer.read_4byte_number();
     int keys_read = 1;
 
     // encontra a posicao correta para inserir a chave
     while (keys_read < qt_keys && key > current_key) {
+    // while ((_buffer.get_current_cursor_position() <= 4096 - 12) && (key > current_key)) {
         // std::cout << "CURRENT INDEX = " << current_block_index << " CURRENT KEY = " << current_key << std::endl;
         // std::cout << "QT KEYS = " << qt_keys << " KEYS READ = " << keys_read << std::endl;
-        current_block_index = _buffer.read_4byte_number();
+        current_index = _buffer.read_4byte_number();
         current_key = _buffer.read_4byte_number();
 
         keys_read++;
     }
 
     //insere a chave na posicao correta
-    unsigned int aux_index = current_block_index;
+    unsigned int aux_index = current_index;
     unsigned int aux_key = current_key;
 
     if (qt_keys == 0) {
-        _buffer.jump_to_the_start();
-        _buffer.jump_n_bytes_from_current_position(12);
+        _buffer.jump_to_absolute_position(12);
     }
 
     _buffer.write_4byte_number(data_file_block_index);
@@ -164,32 +164,30 @@ void BPTreeLeafBlock::insert_key(unsigned int key, unsigned int data_file_block_
     // da um shift no restante das chaves
     while(keys_read < qt_keys) {
         unsigned int current_position = _buffer.get_current_cursor_position();
-        current_block_index = _buffer.read_4byte_number();
+        current_index = _buffer.read_4byte_number();
         current_key = _buffer.read_4byte_number();
 
-        _buffer.jump_to_the_start();
-        _buffer.jump_n_bytes_from_current_position(current_position);
+        _buffer.jump_to_absolute_position(current_position);
 
         _buffer.write_4byte_number(aux_index);
         _buffer.write_4byte_number(aux_key);
 
-        aux_index = current_block_index;
+        aux_index = current_index;
         current_key = current_key;
 
         keys_read++;
     }
 
     // atualiza a quantidade de chaves
-    _buffer.jump_to_the_start();
-    _buffer.jump_n_bytes_from_current_position(2);
+    _buffer.jump_to_absolute_position(2);
     _buffer.write_2byte_number(qt_keys + 1);
 }
 
 unsigned int BPTreeLeafBlock::point_to_new_block(unsigned int block_index) {
-    unsigned int old_next_block = read_4byte_number_from_buffer((unsigned char*) _buffer.get_buffer_bytes(), 4092);
+    _buffer.jump_to_absolute_position(4092);
+    unsigned int old_next_block = _buffer.read_4byte_number();
 
-    _buffer.jump_to_the_start();
-    _buffer.jump_n_bytes_from_current_position(4092);
+    _buffer.jump_to_absolute_position(4092);
     _buffer.write_4byte_number(block_index);
 
     return old_next_block;

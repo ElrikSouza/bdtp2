@@ -1,7 +1,6 @@
 #include "bptree-header-block.h"
 
 #include "../buffer/buffer-utils.h"
-#include "bptree-root-block.h"
 
 BPTreeHeaderBlock::BPTreeHeaderBlock() {
     _buffer = Buffer(4096);
@@ -32,8 +31,7 @@ unsigned int BPTreeHeaderBlock::get_next_free_block_and_point_to_next() {
 
     _next_free_block_index += 1;
 
-    _buffer.jump_to_the_start();
-    _buffer.jump_n_bytes_from_current_position(4);
+    _buffer.jump_to_absolute_position(4);
     _buffer.write_4byte_number(_next_free_block_index);
 
     return old_free_block;

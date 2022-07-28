@@ -20,26 +20,23 @@ bool is_key_inside_block(char* buffer, unsigned int key) {
 int main() {
     // int keys = 255 * 4 + 1;
     int keys = 1500000;
+    // int keys = 1000;
     BPTree bptree;
     int qtd_keys = 0;
 
     bptree.create_tree_file("index.bin");
     std::cout << "Arquivo criado" << std::endl;
 
-    for (int i = 0; i < keys; i++) {
+    for (unsigned int i = 0; i < keys; i++) {
         bptree.insert_key(i + 1, i * 2);
         qtd_keys++;
-
-        if (qtd_keys == 510) {
-            std::cout << ">>>>>>CHEGOU NO LIMITE" << std::endl;
-        }
     }
 
     std::cout << "checking" << std::endl;
 
     unsigned aaa;
     int error = 0;
-    for (int i = 0; i < keys; i++) {
+    for (unsigned int i = 0; i < keys; i++) {
         aaa = bptree.get_data_pointer(i + 1);
         if (aaa != i * 2) {
             // std::cout << std::endl << i + 1 << " didnt match " << aaa << "!=" << i * 2 << std::endl;

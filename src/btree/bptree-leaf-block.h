@@ -14,8 +14,8 @@ class BPTreeLeafBlock {
     void _jump_header_bytes();
 
    public:
-    BPTreeLeafBlock(int block_size);
-    BPTreeLeafBlock(unsigned char* block_buffer, int block_size);
+    BPTreeLeafBlock();
+    BPTreeLeafBlock(unsigned char* block_buffer);
     void insert_key(unsigned int key, unsigned int data_file_block_index);
     unsigned int get_first_key();
     unsigned int point_to_new_block(unsigned int block_index);

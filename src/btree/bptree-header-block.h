@@ -14,10 +14,7 @@ class BPTreeHeaderBlock {
     BPTreeHeaderBlock(unsigned char* block_buffer);
 
     unsigned int get_root_node_index();
-
     unsigned int get_next_free_block_and_point_to_next();
-
     void set_new_root_index(unsigned int new_root_index);
-
     char* get_block_buffer();
 };
