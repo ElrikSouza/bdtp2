@@ -3,7 +3,7 @@
 #include "../buffer/buffer-utils.h"
 
 BPTreeHeaderBlock::BPTreeHeaderBlock() {
-    _buffer = Buffer(4096);
+    _buffer = Buffer(BLOCK_SIZE);
     _root_index = 1;
     _buffer.write_4byte_number(_root_index);
 
@@ -15,7 +15,7 @@ BPTreeHeaderBlock::BPTreeHeaderBlock() {
 }
 
 BPTreeHeaderBlock::BPTreeHeaderBlock(unsigned char* block_buffer) {
-    _buffer = Buffer(block_buffer, 4096);
+    _buffer = Buffer(block_buffer, BLOCK_SIZE);
 
     _root_index = _buffer.read_4byte_number();
     _next_free_block_index = _buffer.read_4byte_number();

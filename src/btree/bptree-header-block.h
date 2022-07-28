@@ -1,4 +1,5 @@
 #include "../buffer/buffer.h"
+#include "../config.h"
 
 #pragma once
 

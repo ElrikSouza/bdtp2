@@ -10,8 +10,6 @@
 #include "bptree-leaf-block.h"
 #include "auxiliar-block.h"
 
-#define BLOCK_SIZE 4096
-
 BPTree::BPTree() {
     _tree_file = BinaryFile(100, BLOCK_SIZE);
     _header_block = BPTreeHeaderBlock();
@@ -98,19 +96,19 @@ std::stack<unsigned int> BPTree::get_path_to_leaf(unsigned int key) {
 unsigned int BPTree::get_data_pointer(unsigned int key) {
     auto path = get_path_to_leaf(key);
     unsigned int leaf_index = path.top();
-    Buffer b(_tree_file.read_block(leaf_index), 4096);
-    b.jump_n_bytes_from_current_position(12);
+    Buffer b(_tree_file.read_block(leaf_index), BLOCK_SIZE);
+    b.jump_to_absolute_position(BPTREE_HEADER_SIZE);
 
     unsigned int current_pointer;
     unsigned int current_key;
-    while (b.get_current_cursor_position() <= 4096 - 12) {
+    while (b.get_current_cursor_position() <= BLOCK_SIZE - BPTREE_HEADER_SIZE) {
         current_pointer = b.read_4byte_number();
         current_key = b.read_4byte_number();
         std::cout << "(current_pointer, current_key) = (" << current_pointer << "," << current_key << ")" << std::endl;
     }
 
-    b.jump_to_absolute_position(12);
-    while (b.get_current_cursor_position() <= 4096 - 12) {
+    b.jump_to_absolute_position(BPTREE_HEADER_SIZE);
+    while (b.get_current_cursor_position() <= BLOCK_SIZE - BPTREE_HEADER_SIZE) {
         current_pointer = b.read_4byte_number();
         current_key = b.read_4byte_number();
         std::cout << current_key << std::endl;
@@ -257,7 +255,7 @@ void BPTree::insert_key(unsigned int key, unsigned int data_file_block_index) {
         // cria um bloco auxiliar que tem espaco para todas as chaves do no + o novo par (ptr,chave) a ser inserido
         // AuxiliarBlock aux_block(leaf_block.get_block_buffer(), BLOCK_SIZE + 8);
         // BPTreeLeafBlock* aux_leaf = aux_block.deserialize_into_leaf_block();
-        AuxiliarBlock aux_block(BLOCK_SIZE - 12 + 8); // - cabecalho + novo par (prt,key)
+        AuxiliarBlock aux_block(BLOCK_SIZE - BPTREE_HEADER_SIZE + BPTREE_INDEX_VALUE_PAIR_SIZE); // - cabecalho + novo par (prt,key)
 
         aux_block.copy_all_key_pointer((char*) leaf_block.get_block_buffer(), BLOCK_SIZE);
 
@@ -365,7 +363,7 @@ void BPTree::insert_in_parent(std::stack<unsigned int>* path_to_leaf, unsigned c
             
             // cria um bloco auxiliar que tem espaco para todas as chaves do parent + o novo par (ptr,chave) a ser inserido
             // AuxiliarBlock aux_block(parent_node.get_block_buffer(), BLOCK_SIZE + 8);
-            AuxiliarBlock aux_block(BLOCK_SIZE - 12 + 8);
+            AuxiliarBlock aux_block(BLOCK_SIZE - BPTREE_HEADER_SIZE + BPTREE_INDEX_VALUE_PAIR_SIZE);
             // BPTreeInternalBlock* aux_internal = aux_block.deserialize_into_internal_block();
             aux_block.copy_all_key_pointer((char*) node, BLOCK_SIZE);
 
@@ -391,6 +389,14 @@ void BPTree::insert_in_parent(std::stack<unsigned int>* path_to_leaf, unsigned c
             parent_node.free();
         }
     }
+}
+
+bool BPTree::is_leaf(unsigned char* block_buffer) {
+    unsigned short int is_leaf = read_2byte_number_from_buffer(block_buffer, 0);
+
+    if (is_leaf == 1) return true;
+
+    return false;
 }
 
 void BPTree::commit_header() {
@@ -455,14 +461,6 @@ void BPTree::commit_header() {
 //         parent.transfer_data_and_pointers_to_split_node(&new_split_internal_block, next_free_block);
 //     }
 // }
-
-bool BPTree::is_leaf(unsigned char* block_buffer) {
-    unsigned short int is_leaf = read_2byte_number_from_buffer(block_buffer, 0);
-
-    if (is_leaf == 1) return true;
-
-    return false;
-}
 
 void BPTree::create_tree_file(const char* filename) {
     // criar o arquivo da arvore

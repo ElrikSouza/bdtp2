@@ -1,4 +1,5 @@
 #include "../buffer/buffer.h"
+#include "../config.h"
 
 #pragma once
 
@@ -11,22 +12,16 @@ class BPTreeLeafBlock {
     unsigned int _next_block;
     Buffer _buffer{nullptr, 0};
 
-    void _jump_header_bytes();
-
    public:
     BPTreeLeafBlock();
     BPTreeLeafBlock(unsigned char* block_buffer);
-    void insert_key(unsigned int key, unsigned int data_file_block_index);
-    unsigned int get_first_key();
-    unsigned int point_to_new_block(unsigned int block_index);
-    void transfer_first_half_of_keys_and_pointers(BPTreeLeafBlock* leaf);
-    void transfer_second_half_of_keys_and_pointers(BPTreeLeafBlock* leaf);
-    
-    
-    unsigned int get_middle_key();
-    void transfer_data_and_pointers_to_split_node(BPTreeLeafBlock* split_node, unsigned int split_node_block_index);
-    bool are_there_free_slots();
 
+    unsigned int get_first_key();
+    bool are_there_free_slots();
+    void insert_key(unsigned int key, unsigned int data_file_block_index);
+    unsigned int point_to_new_block(unsigned int block_index);
     char* get_block_buffer();
     void free();
+    // unsigned int get_middle_key();
+    // void transfer_data_and_pointers_to_split_node(BPTreeLeafBlock* split_node, unsigned int split_node_block_index);
 };
