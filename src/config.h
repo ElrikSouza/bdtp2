@@ -6,6 +6,7 @@
 #define BUCKETS 400000   // 400k
 #define BLOCKS_PER_BUCKET 1
 #define HASH_FILE_NAME "hash-data-file.bin"
+#define PRIMARY_INDEX_NAME "primary-index.bin"
 
 #define BPTREE_MAX_KEYS_PER_BLOCK 510
 #define BPTREE_MIN_KEYS_PER_BLOCK 255

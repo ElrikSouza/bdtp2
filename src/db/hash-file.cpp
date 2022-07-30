@@ -89,3 +89,7 @@ Paper* HashFile::get_paper_by_id(unsigned int paper_id) {
     // caso contrario, ele vai ter o artigo correto.
     return paper;
 }
+
+unsigned char* HashFile::read_block(unsigned int block_index) {
+    return _bin_file.read_block((int) block_index);
+}

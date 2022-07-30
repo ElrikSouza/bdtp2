@@ -44,8 +44,6 @@ class BPTree {
 
     bool is_leaf(unsigned char* block_buffer);
 
-    void commit_header();
-
     /**
      * Cria ou reescreve uma arvore B+ no caminho especificado.
      */
@@ -55,4 +53,8 @@ class BPTree {
      * Apenas lê uma arvore B+ no caminho especificado.
      */
     void read_tree_file(const char* filename);
+
+    void close_tree_file();
+
+    unsigned int get_qt_blocks();
 };

@@ -30,11 +30,17 @@ unsigned int BPTreeHeaderBlock::get_next_free_block_and_point_to_next() {
     unsigned int old_free_block = _next_free_block_index;
 
     _next_free_block_index += 1;
+    _qt_blocks += 1;
 
     _buffer.jump_to_absolute_position(4);
     _buffer.write_4byte_number(_next_free_block_index);
+    _buffer.write_4byte_number(_qt_blocks);
 
     return old_free_block;
+}
+
+unsigned int BPTreeHeaderBlock::get_qt_blocks() {
+    return _qt_blocks;
 }
 
 void BPTreeHeaderBlock::set_new_root_index(unsigned int new_root_index) {

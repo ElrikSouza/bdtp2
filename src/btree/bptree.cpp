@@ -190,10 +190,6 @@ bool BPTree::is_leaf(unsigned char* block_buffer) {
     return false;
 }
 
-void BPTree::commit_header() {
-    _tree_file.write_block(_header_block.get_block_buffer(), 0);
-}
-
 void BPTree::create_tree_file(const char* filename) {
     // criar o arquivo da arvore
     _tree_file.create_or_rewrite(filename);
@@ -210,4 +206,12 @@ void BPTree::create_tree_file(const char* filename) {
 void BPTree::read_tree_file(const char* filename) {
     _tree_file.open_as_readonly(filename);
     _header_block = BPTreeHeaderBlock(_tree_file.read_block(0));
+}
+
+void BPTree::close_tree_file() {
+    _tree_file.close();
+}
+
+unsigned int BPTree::get_qt_blocks() {
+    return _header_block.get_qt_blocks();
 }

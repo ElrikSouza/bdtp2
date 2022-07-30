@@ -28,4 +28,6 @@ class HashFile {
 
     // tenta achar um artigo pela id. se não achar, retorna nullptr
     Paper* get_paper_by_id(unsigned int id);
+
+    unsigned char* read_block(unsigned int block_index);
 };
