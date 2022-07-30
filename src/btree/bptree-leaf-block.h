@@ -22,6 +22,4 @@ class BPTreeLeafBlock {
     unsigned int point_to_new_block(unsigned int block_index);
     char* get_block_buffer();
     void free();
-    // unsigned int get_middle_key();
-    // void transfer_data_and_pointers_to_split_node(BPTreeLeafBlock* split_node, unsigned int split_node_block_index);
 };

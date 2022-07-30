@@ -23,9 +23,4 @@ class BPTreeInternalBlock {
     bool are_there_free_slots();
     char* get_block_buffer();
     void free();
-    // unsigned int get_middle_key();
-    // unsigned int transfer_data_and_pointers_to_split_node(BPTreeInternalBlock* split_node,
-    //                                                       unsigned int split_node_block_index,
-    //                                                       unsigned int overflow_key);
-
 };

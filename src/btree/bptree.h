@@ -14,7 +14,12 @@ class BPTree {
     BinaryFile _tree_file;
 
     unsigned int get_root_node();
-    void insert_in_parent(std::stack<unsigned int>* path_to_leaf, unsigned char* node, unsigned int key, unsigned int data_file_block_index);
+
+    /**
+     * Dado o caminho até um nó armazenado em 'path_to_leaf', insere o par <key,data_file_block_index> no nó contido no topo da pilha.
+     * Caso o nó não possua espaço, insere recursivamente até encontrar um nó que possua espaço.
+     */
+    void insert_in_parent(std::stack<unsigned int>* path_to_leaf, unsigned int key, unsigned int data_file_block_index);
 
    public:
     BPTree();
