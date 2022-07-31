@@ -1,9 +1,10 @@
 #include "primary-index.h"
+
 #include "../paper-block.h"
 
 void PrimaryIndex::create_and_open_for_writing(const char* filename) {
     _bptree = BPTree();
-    
+
     _bptree.create_tree_file(filename);
 }
 
@@ -19,13 +20,14 @@ void PrimaryIndex::insert_id(unsigned int id, unsigned int data_file_block_index
 }
 
 Paper* PrimaryIndex::get_paper_by_id(HashFile* hash_file, unsigned int id) {
-    std::stack<unsigned int> path_to_leaf = _bptree.get_path_to_leaf(id);
-    unsigned int leaf_index = path_to_leaf.top();
-    _bptree.read_tree_file(PRIMARY_INDEX_NAME);
+    // std::stack<unsigned int> path_to_leaf = _bptree.get_path_to_leaf(id);
+    // unsigned int leaf_index = path_to_leaf.top();
 
-    std::cout << "LEAF INDEX = " << leaf_index << std::endl;
+    // std::cout << "paper " << id << "in leaf " << leaf_index << std::endl;
 
-    unsigned char *block_buffer = hash_file->read_block(leaf_index);
+    unsigned int data_pointer = _bptree.get_data_pointer(id);
+
+    unsigned char* block_buffer = hash_file->read_block(data_pointer);
     PaperBlock paper_block(block_buffer);
     Paper* paper = paper_block.get_paper_if_it_is_inside(id);
 

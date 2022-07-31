@@ -1,6 +1,6 @@
+#include "../src/btree/bptree-internal-block.h"
 #include "../src/btree/bptree.h"
 #include "../src/buffer/buffer.h"
-#include "../src/btree/bptree-internal-block.h"
 
 bool is_key_inside_block(char* buffer, unsigned int key) {
     Buffer b((unsigned char*)buffer, 4096);
@@ -19,7 +19,8 @@ bool is_key_inside_block(char* buffer, unsigned int key) {
 
 int main() {
     // int keys = 255 * 4 + 1;
-    int keys = 1500000;
+    // int keys = 1500000;
+    int keys = 1000000;
     // int keys = 1000;
     BPTree bptree;
     int qtd_keys = 0;
@@ -35,16 +36,19 @@ int main() {
     std::cout << "checking" << std::endl;
 
     unsigned aaa;
-    int error = 0;
+    float error = 0;
     for (unsigned int i = 0; i < keys; i++) {
         aaa = bptree.get_data_pointer(i + 1);
+        std::cout << std::endl << i + 1 << " match " << aaa << "==" << i * 2 << std::endl;
+
         if (aaa != i * 2) {
-            // std::cout << std::endl << i + 1 << " didnt match " << aaa << "!=" << i * 2 << std::endl;
+            std::cout << std::endl << i + 1 << " didnt match " << aaa << "!=" << i * 2 << std::endl;
             error++;
         }
     }
 
     std::cout << "error rate=" << error / keys << std::endl;
+    std::cout << "error rate=" << error << std::endl;
 
     return 0;
 }

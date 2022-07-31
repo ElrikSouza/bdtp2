@@ -5,10 +5,10 @@
 
 #include "../binary-file.h"
 #include "../buffer/buffer-utils.h"
+#include "auxiliar-block.h"
 #include "bptree-header-block.h"
 #include "bptree-internal-block.h"
 #include "bptree-leaf-block.h"
-#include "auxiliar-block.h"
 
 BPTree::BPTree() {
     _tree_file = BinaryFile(100, BLOCK_SIZE);
@@ -94,15 +94,16 @@ void BPTree::insert_key(unsigned int key, unsigned int data_file_block_index) {
         leaf_block.insert_key(key, data_file_block_index);
         _tree_file.write_block(leaf_block.get_block_buffer(), leaf_index);
         leaf_block.free();
-    } else { // se nao, faz o split
+    } else {  // se nao, faz o split
         // cria um novo folha
         BPTreeLeafBlock new_leaf;
         unsigned int new_leaf_index = _header_block.get_next_free_block_and_point_to_next();
 
         // cria um bloco auxiliar que tem espaco para todas as chaves do no + o novo par (ptr,chave) a ser inserido
-        AuxiliarBlock aux_block(BLOCK_SIZE - BPTREE_HEADER_SIZE + BPTREE_INDEX_VALUE_PAIR_SIZE); // - cabecalho + novo par (prt,key)
+        AuxiliarBlock aux_block(BLOCK_SIZE - BPTREE_HEADER_SIZE +
+                                BPTREE_INDEX_VALUE_PAIR_SIZE);  // - cabecalho + novo par (prt,key)
 
-        aux_block.copy_all_key_pointer((char*) leaf_block.get_block_buffer(), BLOCK_SIZE);
+        aux_block.copy_all_key_pointer((char*)leaf_block.get_block_buffer(), BLOCK_SIZE);
 
         // insere a chave nesse bloco
         aux_block.insert_leaf_key_pointer(key, data_file_block_index);
@@ -111,10 +112,12 @@ void BPTree::insert_key(unsigned int key, unsigned int data_file_block_index) {
         unsigned int old_next_block = leaf_block.point_to_new_block(new_leaf_index);
         new_leaf.point_to_new_block(old_next_block);
         // copia as chaves (inicio, meio) para o no atual ajustando o header de qtd chaves
-        
+
         aux_block.leaf_copy_first_half_of_key_pointer_to_buffer(leaf_block.get_block_buffer());
         // copia as chaves (meio, fim) para o novo no ajustando o header de qtd chaves
         aux_block.leaf_copy_second_half_of_key_pointer_to_buffer(new_leaf.get_block_buffer());
+
+        aux_block.free();
 
         // pega o menor valor do novo folha
         unsigned int first_key = new_leaf.get_first_key();
@@ -123,10 +126,12 @@ void BPTree::insert_key(unsigned int key, unsigned int data_file_block_index) {
 
         _tree_file.write_block(leaf_block.get_block_buffer(), leaf_index);
         _tree_file.write_block(new_leaf.get_block_buffer(), new_leaf_index);
+        _tree_file.write_block(_header_block.get_block_buffer(), 0);
     }
 }
 
-void BPTree::insert_in_parent(std::stack<unsigned int>* path_to_leaf, unsigned int key, unsigned int data_file_block_index) {
+void BPTree::insert_in_parent(std::stack<unsigned int>* path_to_leaf, unsigned int key,
+                              unsigned int data_file_block_index) {
     // se for raiz
     if (path_to_leaf->empty()) {
         unsigned int old_root_index = _header_block.get_root_node_index();
@@ -140,7 +145,7 @@ void BPTree::insert_in_parent(std::stack<unsigned int>* path_to_leaf, unsigned i
         _header_block.set_new_root_index(new_root_index);
         _tree_file.write_block(new_root.get_block_buffer(), new_root_index);
         new_root.free();
-    } else { // se nao, eh interno
+    } else {  // se nao, eh interno
         // pega o pai de node
         unsigned int parent_index = path_to_leaf->top();
         path_to_leaf->pop();
@@ -152,17 +157,18 @@ void BPTree::insert_in_parent(std::stack<unsigned int>* path_to_leaf, unsigned i
             // insere ordenado
             parent_node.insert_key(key, data_file_block_index);
             _tree_file.write_block(parent_node.get_block_buffer(), parent_index);
-        } else { // se nao, precisa fazer split
+        } else {  // se nao, precisa fazer split
             // cria um novo no interno
             BPTreeInternalBlock new_internal;
             unsigned int new_internal_index = _header_block.get_next_free_block_and_point_to_next();
-            
-            // cria um bloco auxiliar que tem espaco para todas as chaves do parent + o novo par (ptr,chave) a ser inserido
+
+            // cria um bloco auxiliar que tem espaco para todas as chaves do parent + o novo par (ptr,chave) a ser
+            // inserido
             AuxiliarBlock aux_block(BLOCK_SIZE - BPTREE_HEADER_SIZE + BPTREE_INDEX_VALUE_PAIR_SIZE);
-            aux_block.copy_all_key_pointer((char*) parent_block, BLOCK_SIZE);
+            aux_block.copy_all_key_pointer((char*)parent_block, BLOCK_SIZE);
 
             // insere key nesse bloco
-            aux_block.insert_internal_key_pointer(key, data_file_block_index); // fazer o pra interno
+            aux_block.insert_internal_key_pointer(key, data_file_block_index);  // fazer o pra interno
 
             // copia as chaves (inicio,meio) para o parent
             aux_block.internal_copy_first_half_of_key_pointer_to_buffer(parent_node.get_block_buffer());
@@ -180,6 +186,8 @@ void BPTree::insert_in_parent(std::stack<unsigned int>* path_to_leaf, unsigned i
             parent_node.free();
         }
     }
+
+    _tree_file.write_block(_header_block.get_block_buffer(), 0);
 }
 
 bool BPTree::is_leaf(unsigned char* block_buffer) {
@@ -196,7 +204,7 @@ void BPTree::create_tree_file(const char* filename) {
     _tree_file.zero_the_file_out();
 
     char* root = new char[BLOCK_SIZE];
-    write_2byte_number_to_buffer(root, 1, 0); // a raiz eh uma folha no inicio
+    write_2byte_number_to_buffer(root, 1, 0);  // a raiz eh uma folha no inicio
 
     _tree_file.write_block(_header_block.get_block_buffer(), 0);
     _tree_file.write_block(root, 1);

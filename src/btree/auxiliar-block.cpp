@@ -1,4 +1,5 @@
 #include "auxiliar-block.h"
+
 #include "../buffer/buffer-utils.h"
 
 AuxiliarBlock::AuxiliarBlock(int block_size) {
@@ -23,11 +24,15 @@ void AuxiliarBlock::leaf_copy_first_half_of_key_pointer_to_buffer(char* leaf_nod
     char* buffer_bytes = _buffer.get_buffer_bytes();
 
     for (int i = 0; i < BPTREE_MIN_KEYS_PER_BLOCK; i++) {
-        unsigned int current_index = read_4byte_number_from_buffer((unsigned char*) buffer_bytes, i * BPTREE_INDEX_VALUE_PAIR_SIZE);
-        unsigned int current_key = read_4byte_number_from_buffer((unsigned char*) buffer_bytes, i * BPTREE_INDEX_VALUE_PAIR_SIZE + 4);
+        unsigned int current_index =
+            read_4byte_number_from_buffer((unsigned char*)buffer_bytes, i * BPTREE_INDEX_VALUE_PAIR_SIZE);
+        unsigned int current_key =
+            read_4byte_number_from_buffer((unsigned char*)buffer_bytes, i * BPTREE_INDEX_VALUE_PAIR_SIZE + 4);
 
-        write_4byte_number_to_buffer(leaf_node_buffer, current_index, (i * BPTREE_INDEX_VALUE_PAIR_SIZE) + BPTREE_HEADER_SIZE);
-        write_4byte_number_to_buffer(leaf_node_buffer, current_key, (i * BPTREE_INDEX_VALUE_PAIR_SIZE) + BPTREE_HEADER_SIZE + 4);
+        write_4byte_number_to_buffer(leaf_node_buffer, current_index,
+                                     (i * BPTREE_INDEX_VALUE_PAIR_SIZE) + BPTREE_HEADER_SIZE);
+        write_4byte_number_to_buffer(leaf_node_buffer, current_key,
+                                     (i * BPTREE_INDEX_VALUE_PAIR_SIZE) + BPTREE_HEADER_SIZE + 4);
     }
 
     write_2byte_number_to_buffer(leaf_node_buffer, BPTREE_MIN_KEYS_PER_BLOCK, 2);
@@ -37,11 +42,15 @@ void AuxiliarBlock::leaf_copy_second_half_of_key_pointer_to_buffer(char* leaf_no
     char* buffer_bytes = _buffer.get_buffer_bytes();
 
     for (int i = 0; i <= BPTREE_MIN_KEYS_PER_BLOCK; i++) {
-        unsigned int current_index = read_4byte_number_from_buffer((unsigned char*) buffer_bytes, (i + BPTREE_MIN_KEYS_PER_BLOCK) * BPTREE_INDEX_VALUE_PAIR_SIZE);
-        unsigned int current_key = read_4byte_number_from_buffer((unsigned char*) buffer_bytes, (i + BPTREE_MIN_KEYS_PER_BLOCK) * BPTREE_INDEX_VALUE_PAIR_SIZE + 4);
+        unsigned int current_index = read_4byte_number_from_buffer(
+            (unsigned char*)buffer_bytes, (i + BPTREE_MIN_KEYS_PER_BLOCK) * BPTREE_INDEX_VALUE_PAIR_SIZE);
+        unsigned int current_key = read_4byte_number_from_buffer(
+            (unsigned char*)buffer_bytes, (i + BPTREE_MIN_KEYS_PER_BLOCK) * BPTREE_INDEX_VALUE_PAIR_SIZE + 4);
 
-        write_4byte_number_to_buffer(leaf_node_buffer, current_index, (i * BPTREE_INDEX_VALUE_PAIR_SIZE) + BPTREE_HEADER_SIZE);
-        write_4byte_number_to_buffer(leaf_node_buffer, current_key, (i * BPTREE_INDEX_VALUE_PAIR_SIZE) + BPTREE_HEADER_SIZE + 4);
+        write_4byte_number_to_buffer(leaf_node_buffer, current_index,
+                                     (i * BPTREE_INDEX_VALUE_PAIR_SIZE) + BPTREE_HEADER_SIZE);
+        write_4byte_number_to_buffer(leaf_node_buffer, current_key,
+                                     (i * BPTREE_INDEX_VALUE_PAIR_SIZE) + BPTREE_HEADER_SIZE + 4);
     }
 
     write_2byte_number_to_buffer(leaf_node_buffer, BPTREE_MIN_KEYS_PER_BLOCK + 1, 2);
@@ -49,8 +58,8 @@ void AuxiliarBlock::leaf_copy_second_half_of_key_pointer_to_buffer(char* leaf_no
 
 void AuxiliarBlock::insert_leaf_key_pointer(unsigned int key, unsigned int block_index) {
     _buffer.jump_to_the_start();
-    unsigned int current_index = read_4byte_number_from_buffer((unsigned char*) _buffer.get_buffer_bytes(), 0);
-    unsigned int current_key = read_4byte_number_from_buffer((unsigned char*) _buffer.get_buffer_bytes(), 4);
+    unsigned int current_index = read_4byte_number_from_buffer((unsigned char*)_buffer.get_buffer_bytes(), 0);
+    unsigned int current_key = read_4byte_number_from_buffer((unsigned char*)_buffer.get_buffer_bytes(), 4);
 
     current_index = _buffer.read_4byte_number();
     current_key = _buffer.read_4byte_number();
@@ -61,7 +70,7 @@ void AuxiliarBlock::insert_leaf_key_pointer(unsigned int key, unsigned int block
     }
     unsigned int current_position = _buffer.get_current_cursor_position();
     _buffer.jump_to_absolute_position(current_position - BPTREE_INDEX_VALUE_PAIR_SIZE);
-    
+
     unsigned int aux_index = current_index;
     unsigned int aux_key = current_key;
 
@@ -85,11 +94,15 @@ void AuxiliarBlock::internal_copy_first_half_of_key_pointer_to_buffer(char* inte
     char* buffer_bytes = _buffer.get_buffer_bytes();
 
     for (int i = 0; i < BPTREE_MIN_KEYS_PER_BLOCK; i++) {
-        unsigned int current_index = read_4byte_number_from_buffer((unsigned char*) buffer_bytes, i * BPTREE_INDEX_VALUE_PAIR_SIZE);
-        unsigned int current_key = read_4byte_number_from_buffer((unsigned char*) buffer_bytes, i * BPTREE_INDEX_VALUE_PAIR_SIZE + 4);
+        unsigned int current_index =
+            read_4byte_number_from_buffer((unsigned char*)buffer_bytes, i * BPTREE_INDEX_VALUE_PAIR_SIZE);
+        unsigned int current_key =
+            read_4byte_number_from_buffer((unsigned char*)buffer_bytes, i * BPTREE_INDEX_VALUE_PAIR_SIZE + 4);
 
-        write_4byte_number_to_buffer(internal_node_buffer, current_index, (i * BPTREE_INDEX_VALUE_PAIR_SIZE) + BPTREE_HEADER_SIZE);
-        write_4byte_number_to_buffer(internal_node_buffer, current_key, (i * BPTREE_INDEX_VALUE_PAIR_SIZE) + BPTREE_HEADER_SIZE + 4);
+        write_4byte_number_to_buffer(internal_node_buffer, current_index,
+                                     (i * BPTREE_INDEX_VALUE_PAIR_SIZE) + BPTREE_HEADER_SIZE);
+        write_4byte_number_to_buffer(internal_node_buffer, current_key,
+                                     (i * BPTREE_INDEX_VALUE_PAIR_SIZE) + BPTREE_HEADER_SIZE + 4);
     }
 
     write_2byte_number_to_buffer(internal_node_buffer, BPTREE_MIN_KEYS_PER_BLOCK, 2);
@@ -99,14 +112,18 @@ void AuxiliarBlock::internal_copy_second_half_of_key_pointer_to_buffer(char* int
     char* buffer_bytes = _buffer.get_buffer_bytes();
 
     for (int i = 0; i <= BPTREE_MIN_KEYS_PER_BLOCK; i++) {
-        unsigned int current_index = read_4byte_number_from_buffer((unsigned char*) buffer_bytes, (i + BPTREE_MIN_KEYS_PER_BLOCK) * BPTREE_INDEX_VALUE_PAIR_SIZE);
-        unsigned int current_key = read_4byte_number_from_buffer((unsigned char*) buffer_bytes, (i + BPTREE_MIN_KEYS_PER_BLOCK) * BPTREE_INDEX_VALUE_PAIR_SIZE + 4);
+        unsigned int current_index = read_4byte_number_from_buffer(
+            (unsigned char*)buffer_bytes, (i + BPTREE_MIN_KEYS_PER_BLOCK) * BPTREE_INDEX_VALUE_PAIR_SIZE);
+        unsigned int current_key = read_4byte_number_from_buffer(
+            (unsigned char*)buffer_bytes, (i + BPTREE_MIN_KEYS_PER_BLOCK) * BPTREE_INDEX_VALUE_PAIR_SIZE + 4);
 
-        write_4byte_number_to_buffer(internal_node_buffer, current_index, (i * BPTREE_INDEX_VALUE_PAIR_SIZE) + BPTREE_HEADER_SIZE);
-        write_4byte_number_to_buffer(internal_node_buffer, current_key, (i * BPTREE_INDEX_VALUE_PAIR_SIZE) + BPTREE_HEADER_SIZE + 4);
+        write_4byte_number_to_buffer(internal_node_buffer, current_index,
+                                     (i * BPTREE_INDEX_VALUE_PAIR_SIZE) + BPTREE_HEADER_SIZE);
+        write_4byte_number_to_buffer(internal_node_buffer, current_key,
+                                     (i * BPTREE_INDEX_VALUE_PAIR_SIZE) + BPTREE_HEADER_SIZE + 4);
     }
 
-    unsigned int last_subtree_index = read_4byte_number_from_buffer((unsigned char*) buffer_bytes, 4088);
+    unsigned int last_subtree_index = read_4byte_number_from_buffer((unsigned char*)buffer_bytes, 4088);
     write_2byte_number_to_buffer(internal_node_buffer, BPTREE_MIN_KEYS_PER_BLOCK + 1, 2);
     write_4byte_number_to_buffer(internal_node_buffer, last_subtree_index, BPTREE_LAST_INDEX);
 }
@@ -149,4 +166,8 @@ void AuxiliarBlock::insert_internal_key_pointer(unsigned int key, unsigned int b
 
 char* AuxiliarBlock::get_block_buffer() {
     return _buffer.get_buffer_bytes();
+}
+
+void AuxiliarBlock::free() {
+    _buffer.free();
 }
