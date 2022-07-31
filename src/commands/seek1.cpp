@@ -23,8 +23,6 @@ int main(int argc, char const *argv[]) {
     std::cout << "-------------------------------" << std::endl;
     result->print();
 
-    std::cout << "Quantidade de blocos lidos = " << primary_index.qt_blocks_in_index() << std::endl;
-
     hash_file.close();
     primary_index.close();
 

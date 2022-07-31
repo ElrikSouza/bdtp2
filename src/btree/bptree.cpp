@@ -54,6 +54,7 @@ std::stack<unsigned int> BPTree::get_path_to_leaf(unsigned int key) {
 
 unsigned int BPTree::get_data_pointer(unsigned int key) {
     auto path = get_path_to_leaf(key);
+    std::cout << "Blocos lidos: " << path.size() + 1 << std::endl;
     unsigned int leaf_index = path.top();
     Buffer b(_tree_file.read_block(leaf_index), BLOCK_SIZE);
     b.jump_to_absolute_position(BPTREE_HEADER_SIZE);

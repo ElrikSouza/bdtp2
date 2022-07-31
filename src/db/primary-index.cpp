@@ -20,11 +20,6 @@ void PrimaryIndex::insert_id(unsigned int id, unsigned int data_file_block_index
 }
 
 Paper* PrimaryIndex::get_paper_by_id(HashFile* hash_file, unsigned int id) {
-    // std::stack<unsigned int> path_to_leaf = _bptree.get_path_to_leaf(id);
-    // unsigned int leaf_index = path_to_leaf.top();
-
-    // std::cout << "paper " << id << "in leaf " << leaf_index << std::endl;
-
     unsigned int data_pointer = _bptree.get_data_pointer(id);
 
     unsigned char* block_buffer = hash_file->read_block(data_pointer);
