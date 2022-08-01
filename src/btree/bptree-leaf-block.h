@@ -16,10 +16,28 @@ class BPTreeLeafBlock {
     BPTreeLeafBlock();
     BPTreeLeafBlock(unsigned char* block_buffer);
 
+    /**
+     * Retorna a primeira chave do bloco.
+     */
     unsigned int get_first_key();
-    bool are_there_free_slots();
+
+    /**
+     * Insere o par <data_file_block_index,key> no nó.
+     */
     void insert_key(unsigned int key, unsigned int data_file_block_index);
+
+    /**
+     * Referencia o apontador de próximo bloco para o valor de 'block_index' e retorna
+     * o valor previamente referenciado.
+     */
     unsigned int point_to_new_block(unsigned int block_index);
+
+    /**
+     * Verifica se há espaço no nó para inserir um novo par <index,key>.
+     */
+    bool are_there_free_slots();
+
     char* get_block_buffer();
+
     void free();
 };
